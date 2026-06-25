@@ -6,530 +6,567 @@
 <title>まなびクエスト — 英単語チャレンジ</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --purple-50:#EEEDFE;--purple-100:#CECBF6;--purple-200:#AFA9EC;
+  --purple-400:#7F77DD;--purple-600:#534AB7;--purple-800:#3C3489;
+  --amber-50:#FAEEDA;--amber-200:#EF9F27;--amber-600:#854F0B;--amber-800:#633806;
+  --green-50:#EAF3DE;--green-600:#3B6D11;--green-800:#27500A;
+  --red-50:#FCEBEB;--red-600:#A32D2D;--red-800:#791F1F;
+  --gray-50:#F1EFE8;--gray-200:#B4B2A9;--gray-600:#5F5E5A;
+  --bg:#F8F7FF;--surface:#FFFFFF;
+  --border:rgba(83,74,183,0.15);
+  --text-primary:#1a1830;--text-secondary:#6b6890;--text-hint:#9e9bbd;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:20px;
+}
+body { font-family:'Helvetica Neue','Hiragino Kaku Gothic ProN','Meiryo',sans-serif; background:var(--bg); color:var(--text-primary); min-height:100vh; display:flex; align-items:flex-start; justify-content:center; padding:24px 16px 48px; }
+.app { width:100%; max-width:400px; }
+.screen { display:none; }
+.screen.active { display:block; }
 
-  :root {
-    --purple-50: #EEEDFE;
-    --purple-100: #CECBF6;
-    --purple-200: #AFA9EC;
-    --purple-400: #7F77DD;
-    --purple-600: #534AB7;
-    --purple-800: #3C3489;
-    --amber-50: #FAEEDA;
-    --amber-200: #EF9F27;
-    --amber-600: #854F0B;
-    --amber-800: #633806;
-    --green-50: #EAF3DE;
-    --green-600: #3B6D11;
-    --green-800: #27500A;
-    --red-50: #FCEBEB;
-    --red-600: #A32D2D;
-    --red-800: #791F1F;
-    --bg: #F8F7FF;
-    --surface: #FFFFFF;
-    --border: rgba(83,74,183,0.15);
-    --text-primary: #1a1830;
-    --text-secondary: #6b6890;
-    --text-hint: #9e9bbd;
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 20px;
-  }
+.header { display:flex; align-items:center; justify-content:space-between; padding:0 4px; margin-bottom:20px; }
+.header-logo { font-size:17px; font-weight:700; color:var(--purple-600); letter-spacing:-0.3px; }
+.coin-badge { background:var(--amber-50); color:var(--amber-800); font-size:14px; font-weight:600; padding:5px 12px; border-radius:99px; display:inline-flex; align-items:center; gap:5px; border:1px solid rgba(239,159,39,0.4); }
 
-  body {
-    font-family: 'Helvetica Neue', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
-    background: var(--bg);
-    color: var(--text-primary);
-    min-height: 100vh;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 24px 16px 40px;
-  }
+.card { background:var(--surface); border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px; }
 
-  .app { width: 100%; max-width: 400px; }
+.char-area { text-align:center; padding:8px 0; }
+.char-name { font-size:18px; font-weight:700; color:var(--text-primary); margin-top:10px; }
+.char-level { display:inline-block; background:var(--purple-50); color:var(--purple-600); font-size:12px; font-weight:600; padding:3px 12px; border-radius:99px; margin-top:6px; border:1px solid var(--purple-100); }
 
-  .screen { display: none; }
-  .screen.active { display: block; }
+.streak-label { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.streak-label p { font-size:13px; color:var(--text-secondary); }
+.streak-badge { background:#FAECE7; color:#712B13; font-size:12px; font-weight:600; padding:3px 10px; border-radius:99px; display:inline-flex; align-items:center; gap:4px; border:1px solid rgba(216,90,48,0.3); }
+.days-row { display:flex; gap:5px; margin-bottom:16px; }
+.day-cell { flex:1; text-align:center; padding:7px 0; border-radius:var(--radius-sm); font-size:11px; font-weight:600; }
+.day-cell.done { background:var(--green-50); color:var(--green-800); }
+.day-cell.today { background:var(--amber-50); color:var(--amber-800); border:1.5px solid var(--amber-200); }
+.day-cell.empty { background:#F3F2FA; color:var(--text-hint); }
+.bonus-row { display:flex; align-items:center; justify-content:space-between; }
+.bonus-amount { font-size:26px; font-weight:700; color:var(--amber-800); }
+.bonus-amount span { font-size:14px; font-weight:400; color:var(--text-secondary); }
 
-  /* Header */
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 4px;
-    margin-bottom: 20px;
-  }
-  .header-logo { font-size: 17px; font-weight: 700; color: var(--purple-600); letter-spacing: -0.3px; }
-  .coin-badge {
-    background: var(--amber-50);
-    color: var(--amber-800);
-    font-size: 14px;
-    font-weight: 600;
-    padding: 5px 12px;
-    border-radius: 99px;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    border: 1px solid rgba(239,159,39,0.4);
-  }
+.btn-primary { background:var(--purple-600); color:white; border:none; border-radius:var(--radius-md); padding:14px 24px; font-size:15px; font-weight:600; cursor:pointer; width:100%; margin-top:4px; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.15s, transform 0.1s; }
+.btn-primary:hover { background:var(--purple-800); }
+.btn-primary:active { transform:scale(0.98); }
+.btn-secondary { background:white; color:var(--purple-600); border:1.5px solid var(--purple-200); border-radius:var(--radius-md); padding:13px 24px; font-size:15px; font-weight:600; cursor:pointer; width:100%; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.15s; }
+.btn-secondary:hover { background:var(--purple-50); }
 
-  /* Card */
-  .card {
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border);
-    padding: 20px;
-    margin-bottom: 12px;
-  }
+.btn-choice { background:var(--surface); color:var(--text-primary); border:1px solid var(--border); border-radius:var(--radius-md); padding:13px 16px; font-size:14px; cursor:pointer; width:100%; margin-bottom:9px; text-align:left; transition:background 0.12s, border-color 0.12s; display:flex; align-items:center; gap:10px; }
+.btn-choice:hover { background:var(--purple-50); border-color:var(--purple-200); }
+.btn-choice.correct { background:var(--green-50); border-color:var(--green-600); color:var(--green-800); }
+.btn-choice.wrong { background:var(--red-50); border-color:var(--red-600); color:var(--red-800); }
+.choice-label { width:24px; height:24px; border-radius:50%; background:#F3F2FA; color:var(--text-secondary); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.btn-choice.correct .choice-label { background:var(--green-600); color:white; }
+.btn-choice.wrong .choice-label { background:var(--red-600); color:white; }
 
-  /* Character SVG area */
-  .char-area { text-align: center; padding: 8px 0; }
-  .char-name { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-top: 10px; }
-  .char-level {
-    display: inline-block;
-    background: var(--purple-50);
-    color: var(--purple-600);
-    font-size: 12px;
-    font-weight: 600;
-    padding: 3px 12px;
-    border-radius: 99px;
-    margin-top: 6px;
-    border: 1px solid var(--purple-100);
-  }
+.feedback { display:none; padding:11px 14px; border-radius:var(--radius-md); margin-bottom:10px; font-size:14px; font-weight:500; align-items:center; gap:8px; }
+.feedback.show { display:flex; }
+.feedback.correct { background:var(--green-50); color:var(--green-800); border:1px solid rgba(59,109,17,0.3); }
+.feedback.wrong { background:var(--red-50); color:var(--red-800); border:1px solid rgba(163,45,45,0.3); }
 
-  /* Streak row */
-  .streak-label {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .streak-label p { font-size: 13px; color: var(--text-secondary); }
-  .streak-badge {
-    background: #FAECE7;
-    color: #712B13;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 99px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    border: 1px solid rgba(216,90,48,0.3);
-  }
-  .days-row { display: flex; gap: 5px; margin-bottom: 16px; }
-  .day-cell {
-    flex: 1;
-    text-align: center;
-    padding: 7px 0;
-    border-radius: var(--radius-sm);
-    font-size: 11px;
-    font-weight: 600;
-  }
-  .day-cell.done { background: var(--green-50); color: var(--green-800); }
-  .day-cell.today { background: var(--amber-50); color: var(--amber-800); border: 1.5px solid var(--amber-200); }
-  .day-cell.empty { background: #F3F2FA; color: var(--text-hint); }
+.progress-wrap { background:#E8E6F8; border-radius:99px; height:6px; margin-bottom:16px; }
+.progress-bar { background:var(--purple-400); border-radius:99px; height:6px; transition:width 0.4s; }
+.quiz-prompt { font-size:12px; color:var(--text-secondary); margin-bottom:8px; }
+.quiz-word { font-size:32px; font-weight:700; color:var(--text-primary); letter-spacing:0.02em; margin-bottom:4px; }
+.quiz-pos { font-size:13px; color:var(--purple-400); }
 
-  .bonus-row { display: flex; align-items: center; justify-content: space-between; }
-  .bonus-amount { font-size: 26px; font-weight: 700; color: var(--amber-800); }
-  .bonus-amount span { font-size: 14px; font-weight: 400; color: var(--text-secondary); }
+.exp-bar-bg { background:#E8E6F8; border-radius:99px; height:10px; margin:8px 0; }
+.exp-bar { background:var(--purple-400); border-radius:99px; height:10px; transition:width 0.6s; }
+.evo-row { display:flex; align-items:center; flex-wrap:wrap; gap:6px; font-size:12px; }
+.evo-pill { padding:3px 10px; border-radius:99px; }
+.evo-pill.done { background:var(--green-50); color:var(--green-800); }
+.evo-pill.current { background:var(--purple-50); color:var(--purple-600); border:1px solid var(--purple-200); font-weight:600; }
+.evo-pill.future { background:#F3F2FA; color:var(--text-hint); }
 
-  /* Buttons */
-  .btn-primary {
-    background: var(--purple-600);
-    color: white;
-    border: none;
-    border-radius: var(--radius-md);
-    padding: 14px 24px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    transition: background 0.15s, transform 0.1s;
-  }
-  .btn-primary:hover { background: var(--purple-800); }
-  .btn-primary:active { transform: scale(0.98); }
+.result-score { font-size:48px; font-weight:700; color:var(--purple-600); text-align:center; }
+.result-label { font-size:14px; color:var(--text-secondary); text-align:center; margin-bottom:16px; }
+.stat-row { display:flex; gap:10px; }
+.stat-cell { flex:1; background:#F3F2FA; border-radius:var(--radius-md); padding:12px; text-align:center; }
+.stat-cell .num { font-size:22px; font-weight:700; }
+.stat-cell .lbl { font-size:11px; color:var(--text-secondary); margin-top:2px; }
 
-  .btn-choice {
-    background: var(--surface);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 13px 16px;
-    font-size: 14px;
-    cursor: pointer;
-    width: 100%;
-    margin-bottom: 9px;
-    text-align: left;
-    transition: background 0.12s, border-color 0.12s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .btn-choice:hover { background: var(--purple-50); border-color: var(--purple-200); }
-  .btn-choice.correct { background: var(--green-50); border-color: var(--green-600); color: var(--green-800); }
-  .btn-choice.wrong { background: var(--red-50); border-color: var(--red-600); color: var(--red-800); }
-  .btn-choice .choice-label {
-    width: 24px; height: 24px;
-    border-radius: 50%;
-    background: #F3F2FA;
-    color: var(--text-secondary);
-    font-size: 12px;
-    font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .btn-choice.correct .choice-label { background: var(--green-600); color: white; }
-  .btn-choice.wrong .choice-label { background: var(--red-600); color: white; }
+/* Shop */
+.shop-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.shop-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px 12px; text-align:center; cursor:pointer; transition:border-color 0.15s, background 0.15s; position:relative; }
+.shop-item:hover:not(.locked) { border-color:var(--purple-400); background:var(--purple-50); }
+.shop-item.owned { border-color:var(--green-600); background:var(--green-50); }
+.shop-item.equipped { border-color:var(--purple-600); background:var(--purple-50); border-width:2px; }
+.shop-item.locked { opacity:0.5; cursor:default; }
+.shop-item-name { font-size:13px; font-weight:600; margin-top:8px; color:var(--text-primary); }
+.shop-item-cost { font-size:12px; color:var(--amber-800); margin-top:3px; display:flex; align-items:center; justify-content:center; gap:3px; }
+.shop-item-badge { position:absolute; top:8px; right:8px; font-size:10px; font-weight:700; padding:2px 7px; border-radius:99px; }
+.badge-equipped { background:var(--purple-600); color:white; }
+.badge-owned { background:var(--green-600); color:white; }
+.badge-locked { background:var(--gray-200); color:var(--gray-600); }
+.lock-icon { font-size:22px; color:var(--gray-200); margin-bottom:2px; }
+.shop-filter { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+.filter-btn { background:#F3F2FA; color:var(--text-secondary); border:1px solid var(--border); border-radius:99px; padding:5px 14px; font-size:12px; font-weight:600; cursor:pointer; transition:background 0.12s; }
+.filter-btn.active { background:var(--purple-600); color:white; border-color:var(--purple-600); }
 
-  /* Feedback */
-  .feedback {
-    display: none;
-    padding: 11px 14px;
-    border-radius: var(--radius-md);
-    margin-bottom: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    align-items: center;
-    gap: 8px;
-  }
-  .feedback.show { display: flex; }
-  .feedback.correct { background: var(--green-50); color: var(--green-800); border: 1px solid rgba(59,109,17,0.3); }
-  .feedback.wrong { background: var(--red-50); color: var(--red-800); border: 1px solid rgba(163,45,45,0.3); }
+/* Tab */
+.tab-bar { display:flex; border-top:1px solid var(--border); margin-top:16px; padding-top:12px; gap:4px; }
+.tab { flex:1; text-align:center; font-size:10px; color:var(--text-hint); cursor:pointer; padding:4px; border-radius:var(--radius-sm); transition:background 0.1s, color 0.1s; }
+.tab i { font-size:20px; display:block; margin-bottom:2px; }
+.tab.active { color:var(--purple-600); background:var(--purple-50); }
+.tab:hover:not(.active) { background:#F3F2FA; color:var(--text-secondary); }
 
-  /* Progress bar */
-  .progress-wrap { background: #E8E6F8; border-radius: 99px; height: 6px; margin-bottom: 16px; }
-  .progress-bar { background: var(--purple-400); border-radius: 99px; height: 6px; transition: width 0.4s; }
+/* Levelup overlay */
+.levelup-overlay { display:none; position:fixed; inset:0; background:rgba(83,74,183,0.18); z-index:100; align-items:center; justify-content:center; }
+.levelup-overlay.show { display:flex; }
+.levelup-box { background:white; border-radius:var(--radius-lg); padding:32px 28px; text-align:center; max-width:300px; width:90%; border:1px solid var(--purple-200); }
+.levelup-title { font-size:22px; font-weight:700; color:var(--purple-600); margin-bottom:6px; }
+.levelup-sub { font-size:14px; color:var(--text-secondary); margin-bottom:20px; }
+.unlock-list { text-align:left; margin-bottom:20px; }
+.unlock-item { display:flex; align-items:center; gap:8px; font-size:14px; padding:6px 0; border-bottom:1px solid var(--border); }
+.unlock-item:last-child { border-bottom:none; }
 
-  /* Quiz word */
-  .quiz-prompt { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
-  .quiz-word { font-size: 32px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.02em; margin-bottom: 4px; }
-  .quiz-pos { font-size: 13px; color: var(--purple-400); }
-
-  /* EXP bar */
-  .exp-bar-bg { background: #E8E6F8; border-radius: 99px; height: 10px; margin: 8px 0; }
-  .exp-bar { background: var(--purple-400); border-radius: 99px; height: 10px; transition: width 0.6s; }
-
-  /* Evolution row */
-  .evo-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12px; }
-  .evo-pill { padding: 3px 10px; border-radius: 99px; }
-  .evo-pill.done { background: var(--green-50); color: var(--green-800); }
-  .evo-pill.current { background: var(--purple-50); color: var(--purple-600); border: 1px solid var(--purple-200); font-weight: 600; }
-  .evo-pill.future { background: #F3F2FA; color: var(--text-hint); }
-
-  /* Tab bar */
-  .tab-bar {
-    display: flex;
-    border-top: 1px solid var(--border);
-    margin-top: 16px;
-    padding-top: 12px;
-    gap: 4px;
-  }
-  .tab {
-    flex: 1;
-    text-align: center;
-    font-size: 10px;
-    color: var(--text-hint);
-    cursor: pointer;
-    padding: 4px;
-    border-radius: var(--radius-sm);
-    transition: background 0.1s, color 0.1s;
-  }
-  .tab i { font-size: 20px; display: block; margin-bottom: 2px; }
-  .tab.active { color: var(--purple-600); background: var(--purple-50); }
-  .tab:hover:not(.active) { background: #F3F2FA; color: var(--text-secondary); }
-
-  /* Result screen */
-  .result-stars { font-size: 40px; text-align: center; margin: 8px 0; }
-  .result-score { font-size: 48px; font-weight: 700; color: var(--purple-600); text-align: center; }
-  .result-label { font-size: 14px; color: var(--text-secondary); text-align: center; margin-bottom: 16px; }
-  .stat-row { display: flex; gap: 10px; }
-  .stat-cell {
-    flex: 1;
-    background: #F3F2FA;
-    border-radius: var(--radius-md);
-    padding: 12px;
-    text-align: center;
-  }
-  .stat-cell .num { font-size: 22px; font-weight: 700; }
-  .stat-cell .lbl { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
-
-  @media (prefers-reduced-motion: reduce) {
-    .progress-bar, .exp-bar { transition: none; }
-  }
+@media (prefers-reduced-motion:reduce) { .progress-bar,.exp-bar { transition:none; } }
 </style>
 </head>
 <body>
 <div class="app">
 
-<!-- ========== SCREEN: HOME ========== -->
+<!-- ========== HOME ========== -->
 <div id="screen-home" class="screen active">
   <div class="header">
     <p class="header-logo"><i class="ti ti-wand" aria-hidden="true"></i> まなびクエスト</p>
-    <span class="coin-badge"><i class="ti ti-coin" aria-hidden="true"></i> <span id="home-coins">180</span></span>
+    <span class="coin-badge"><i class="ti ti-coin" aria-hidden="true"></i> <span class="js-coins">0</span></span>
   </div>
-
   <div class="card char-area">
-    <svg width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
-      <circle cx="50" cy="50" r="46" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1.5"/>
-      <ellipse cx="50" cy="56" rx="20" ry="23" fill="#7F77DD"/>
-      <circle cx="50" cy="32" r="16" fill="#534AB7"/>
-      <circle cx="43" cy="30" r="3.5" fill="white"/>
-      <circle cx="57" cy="30" r="3.5" fill="white"/>
-      <circle cx="43" cy="30" r="1.5" fill="#3C3489"/>
-      <circle cx="57" cy="30" r="1.5" fill="#3C3489"/>
-      <path d="M43 38 Q50 43 57 38" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <line x1="30" y1="52" x2="17" y2="64" stroke="#534AB7" stroke-width="5" stroke-linecap="round"/>
-      <line x1="70" y1="52" x2="83" y2="64" stroke="#534AB7" stroke-width="5" stroke-linecap="round"/>
-    </svg>
+    <div id="home-char-svg"></div>
     <p class="char-name">まなびん</p>
-    <span class="char-level">Lv.4 — 見習い魔法使い</span>
+    <span class="char-level js-level-label"></span>
   </div>
-
   <div class="card">
     <div class="streak-label">
       <p>ログインボーナス</p>
-      <span class="streak-badge"><i class="ti ti-flame" aria-hidden="true"></i> 5日連続</span>
+      <span class="streak-badge"><i class="ti ti-flame" aria-hidden="true"></i> <span class="js-streak">0</span>日連続</span>
     </div>
-    <div class="days-row">
-      <div class="day-cell done"><i class="ti ti-check" style="font-size:13px"></i><br>月</div>
-      <div class="day-cell done"><i class="ti ti-check" style="font-size:13px"></i><br>火</div>
-      <div class="day-cell done"><i class="ti ti-check" style="font-size:13px"></i><br>水</div>
-      <div class="day-cell done"><i class="ti ti-check" style="font-size:13px"></i><br>木</div>
-      <div class="day-cell done"><i class="ti ti-check" style="font-size:13px"></i><br>金</div>
-      <div class="day-cell today"><i class="ti ti-star" style="font-size:13px"></i><br>今日</div>
-      <div class="day-cell empty">—<br>日</div>
-    </div>
+    <div class="days-row" id="days-row"></div>
     <div class="bonus-row">
       <div>
         <p style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">今日のボーナス</p>
-        <p class="bonus-amount">+30 <span>コイン</span></p>
+        <p class="bonus-amount">+<span class="js-bonus">0</span> <span>コイン</span></p>
       </div>
       <div style="text-align:right;">
         <p style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">所持コイン</p>
-        <span class="coin-badge" style="font-size:15px;padding:7px 14px;"><i class="ti ti-coin" aria-hidden="true"></i> 180</span>
+        <span class="coin-badge" style="font-size:15px;padding:7px 14px;"><i class="ti ti-coin" aria-hidden="true"></i> <span class="js-coins">0</span></span>
       </div>
     </div>
   </div>
-
-  <button class="btn-primary" onclick="startQuiz()">
-    <i class="ti ti-bolt" aria-hidden="true"></i> クイズをはじめる
-  </button>
-
+  <button class="btn-primary" onclick="startQuiz()"><i class="ti ti-bolt" aria-hidden="true"></i> クイズをはじめる</button>
   <div class="tab-bar">
     <div class="tab active" onclick="goTo('screen-home')"><i class="ti ti-home"></i>ホーム</div>
     <div class="tab" onclick="goTo('screen-char')"><i class="ti ti-shield"></i>キャラ</div>
-    <div class="tab" onclick="goTo('screen-home')"><i class="ti ti-chart-bar"></i>記録</div>
+    <div class="tab" onclick="goTo('screen-shop')"><i class="ti ti-shirt"></i>ショップ</div>
   </div>
 </div>
 
-<!-- ========== SCREEN: QUIZ ========== -->
+<!-- ========== QUIZ ========== -->
 <div id="screen-quiz" class="screen">
   <div class="header">
     <p class="header-logo"><i class="ti ti-wand" aria-hidden="true"></i> まなびクエスト</p>
-    <span class="coin-badge"><i class="ti ti-coin" aria-hidden="true"></i> <span id="quiz-coins">180</span></span>
+    <span class="coin-badge"><i class="ti ti-coin" aria-hidden="true"></i> <span class="js-coins">0</span></span>
   </div>
-
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 2px;">
     <p style="font-size:13px;color:var(--text-secondary);">問題 <span id="q-num">1</span> / 5</p>
     <p style="font-size:13px;color:var(--text-secondary);">正解 <span id="q-correct">0</span> 問</p>
   </div>
-  <div class="progress-wrap">
-    <div class="progress-bar" id="progress-bar" style="width:20%"></div>
-  </div>
-
+  <div class="progress-wrap"><div class="progress-bar" id="progress-bar" style="width:20%"></div></div>
   <div class="card" style="margin-bottom:16px;">
     <p class="quiz-prompt">次の英単語の意味は？</p>
     <p class="quiz-word" id="q-word">persevere</p>
     <p class="quiz-pos" id="q-pos">動詞</p>
   </div>
-
   <div id="choices"></div>
-
   <div class="feedback" id="feedback"></div>
-
-  <button class="btn-primary" id="next-btn" style="display:none;" onclick="nextQ()">
-    次の問題 <i class="ti ti-arrow-right" aria-hidden="true"></i>
-  </button>
-
+  <button class="btn-primary" id="next-btn" style="display:none;" onclick="nextQ()">次の問題 <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
   <div class="tab-bar">
     <div class="tab" onclick="goTo('screen-home')"><i class="ti ti-home"></i>ホーム</div>
     <div class="tab" onclick="goTo('screen-char')"><i class="ti ti-shield"></i>キャラ</div>
-    <div class="tab"><i class="ti ti-chart-bar"></i>記録</div>
+    <div class="tab" onclick="goTo('screen-shop')"><i class="ti ti-shirt"></i>ショップ</div>
   </div>
 </div>
 
-<!-- ========== SCREEN: RESULT ========== -->
+<!-- ========== RESULT ========== -->
 <div id="screen-result" class="screen">
   <div class="header">
     <p class="header-logo"><i class="ti ti-wand" aria-hidden="true"></i> まなびクエスト</p>
-    <span class="coin-badge"><i class="ti ti-coin" aria-hidden="true"></i> <span id="result-coins">180</span></span>
+    <span class="coin-badge"><i class="ti ti-coin" aria-hidden="true"></i> <span class="js-coins">0</span></span>
   </div>
-
-  <div class="card" style="text-align:center; padding: 28px 20px;">
+  <div class="card" style="text-align:center;padding:28px 20px;">
     <p style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;">クイズ結果</p>
-    <p class="result-score" id="result-score">4 / 5</p>
-    <p class="result-label" id="result-label">すごい！ほぼ完璧！</p>
+    <p class="result-score" id="result-score">0 / 5</p>
+    <p class="result-label" id="result-label"></p>
     <div class="stat-row">
-      <div class="stat-cell">
-        <p class="num" style="color:var(--purple-600)" id="res-coin-earn">+40</p>
-        <p class="lbl">獲得コイン</p>
-      </div>
-      <div class="stat-cell">
-        <p class="num" style="color:#3B6D11" id="res-exp-earn">+40</p>
-        <p class="lbl">獲得EXP</p>
-      </div>
-      <div class="stat-cell">
-        <p class="num" id="res-streak">5</p>
-        <p class="lbl">連続日数</p>
-      </div>
+      <div class="stat-cell"><p class="num" style="color:var(--purple-600)" id="res-coin-earn">+0</p><p class="lbl">獲得コイン</p></div>
+      <div class="stat-cell"><p class="num" style="color:var(--green-600)" id="res-streak">5</p><p class="lbl">連続日数</p></div>
     </div>
   </div>
-
-  <button class="btn-primary" onclick="goTo('screen-char')" style="margin-bottom:10px;">
-    <i class="ti ti-shield" aria-hidden="true"></i> キャラを確認する
-  </button>
-  <button class="btn-primary" style="background:white;color:var(--purple-600);border:1.5px solid var(--purple-200);" onclick="startQuiz()">
-    <i class="ti ti-refresh" aria-hidden="true"></i> もう一度チャレンジ
-  </button>
-
+  <button class="btn-primary" onclick="goTo('screen-char')"><i class="ti ti-shield" aria-hidden="true"></i> キャラを確認する</button>
+  <button class="btn-secondary" onclick="startQuiz()"><i class="ti ti-refresh" aria-hidden="true"></i> もう一度チャレンジ</button>
   <div class="tab-bar">
     <div class="tab" onclick="goTo('screen-home')"><i class="ti ti-home"></i>ホーム</div>
     <div class="tab" onclick="goTo('screen-char')"><i class="ti ti-shield"></i>キャラ</div>
-    <div class="tab"><i class="ti ti-chart-bar"></i>記録</div>
+    <div class="tab" onclick="goTo('screen-shop')"><i class="ti ti-shirt"></i>ショップ</div>
   </div>
 </div>
 
-<!-- ========== SCREEN: CHARACTER ========== -->
+<!-- ========== CHARACTER ========== -->
 <div id="screen-char" class="screen">
   <div class="header">
     <p class="header-logo"><i class="ti ti-wand" aria-hidden="true"></i> まなびクエスト</p>
-    <span class="coin-badge"><i class="ti ti-coin" aria-hidden="true"></i> <span id="char-coins">180</span></span>
+    <span class="coin-badge"><i class="ti ti-coin" aria-hidden="true"></i> <span class="js-coins">0</span></span>
   </div>
-
   <div class="card char-area">
-    <svg width="110" height="110" viewBox="0 0 100 100" aria-hidden="true">
-      <circle cx="50" cy="50" r="46" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1.5"/>
-      <ellipse cx="50" cy="56" rx="20" ry="23" fill="#7F77DD"/>
-      <circle cx="50" cy="32" r="16" fill="#534AB7"/>
-      <circle cx="43" cy="30" r="3.5" fill="white"/>
-      <circle cx="57" cy="30" r="3.5" fill="white"/>
-      <circle cx="43" cy="30" r="1.5" fill="#3C3489"/>
-      <circle cx="57" cy="30" r="1.5" fill="#3C3489"/>
-      <path d="M43 38 Q50 43 57 38" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <line x1="30" y1="52" x2="17" y2="64" stroke="#534AB7" stroke-width="5" stroke-linecap="round"/>
-      <line x1="70" y1="52" x2="83" y2="64" stroke="#534AB7" stroke-width="5" stroke-linecap="round"/>
-      <polygon points="42,14 50,2 58,14" fill="#EF9F27" stroke="#854F0B" stroke-width="1"/>
-    </svg>
+    <div id="char-svg"></div>
     <p class="char-name">まなびん</p>
-    <span class="char-level">Lv.4 — 見習い魔法使い</span>
+    <span class="char-level js-level-label"></span>
   </div>
-
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-      <p style="font-size:13px;color:var(--text-secondary);">経験値</p>
-      <p style="font-size:13px;color:var(--text-secondary);"><span id="exp-val">320</span> / 500 EXP</p>
+      <p style="font-size:13px;color:var(--text-secondary);">連続ログイン日数</p>
+      <p style="font-size:13px;color:var(--text-secondary);"><span class="js-streak">0</span>日 / 次のLvまで <span id="days-to-next">0</span>日</p>
     </div>
-    <div class="exp-bar-bg">
-      <div class="exp-bar" id="exp-bar" style="width:64%"></div>
-    </div>
-    <p style="font-size:12px;color:var(--text-hint);margin-top:6px;">あと180EXPでLv.5 — 魔法使い見習い に進化！</p>
+    <div class="exp-bar-bg"><div class="exp-bar" id="exp-bar"></div></div>
+    <p style="font-size:12px;color:var(--text-hint);margin-top:6px;" id="next-level-hint"></p>
   </div>
-
   <div class="card">
     <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">進化の軌跡</p>
-    <div class="evo-row">
-      <span class="evo-pill done">Lv.1 まほうたまご</span>
-      <i class="ti ti-arrow-right" style="font-size:12px;color:var(--text-hint)" aria-hidden="true"></i>
-      <span class="evo-pill done">Lv.2 まほうひよこ</span>
-      <i class="ti ti-arrow-right" style="font-size:12px;color:var(--text-hint)" aria-hidden="true"></i>
-      <span class="evo-pill done">Lv.3 まほうこぞう</span>
-      <i class="ti ti-arrow-right" style="font-size:12px;color:var(--text-hint)" aria-hidden="true"></i>
-      <span class="evo-pill current">Lv.4 今ここ</span>
-      <i class="ti ti-arrow-right" style="font-size:12px;color:var(--text-hint)" aria-hidden="true"></i>
-      <span class="evo-pill future">Lv.5 ???</span>
-    </div>
+    <div class="evo-row" id="evo-row"></div>
   </div>
-
-  <div class="card" style="display:flex;justify-content:space-between;align-items:center;">
-    <div>
-      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">所持コイン</p>
-      <span class="coin-badge" style="font-size:15px;padding:7px 14px;"><i class="ti ti-coin" aria-hidden="true"></i> <span id="char-coins2">180</span></span>
-    </div>
-    <button style="background:var(--amber-50);color:var(--amber-800);border:1px solid rgba(239,159,39,0.5);border-radius:var(--radius-md);padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;line-height:1.5;">
-      <i class="ti ti-shirt" aria-hidden="true"></i><br>コスチューム<br>ショップ
-    </button>
+  <div class="card">
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">装備中</p>
+    <div id="equipped-display" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
   </div>
-
+  <button class="btn-primary" onclick="goTo('screen-shop')" style="margin-top:0;"><i class="ti ti-shirt" aria-hidden="true"></i> コスチュームショップへ</button>
   <div class="tab-bar">
     <div class="tab" onclick="goTo('screen-home')"><i class="ti ti-home"></i>ホーム</div>
     <div class="tab active"><i class="ti ti-shield"></i>キャラ</div>
-    <div class="tab"><i class="ti ti-chart-bar"></i>記録</div>
+    <div class="tab" onclick="goTo('screen-shop')"><i class="ti ti-shirt"></i>ショップ</div>
   </div>
 </div>
 
+<!-- ========== SHOP ========== -->
+<div id="screen-shop" class="screen">
+  <div class="header">
+    <p class="header-logo"><i class="ti ti-wand" aria-hidden="true"></i> まなびクエスト</p>
+    <span class="coin-badge"><i class="ti ti-coin" aria-hidden="true"></i> <span class="js-coins">0</span></span>
+  </div>
+  <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;padding:0 2px;">コインで装備を買おう。レベルが上がるとアンロック！</p>
+  <div class="shop-filter">
+    <button class="filter-btn active" onclick="setFilter('all', this)">すべて</button>
+    <button class="filter-btn" onclick="setFilter('hat', this)">帽子</button>
+    <button class="filter-btn" onclick="setFilter('robe', this)">ローブ</button>
+    <button class="filter-btn" onclick="setFilter('staff', this)">杖</button>
+    <button class="filter-btn" onclick="setFilter('acc', this)">アクセ</button>
+  </div>
+  <div class="shop-grid" id="shop-grid"></div>
+  <div class="tab-bar">
+    <div class="tab" onclick="goTo('screen-home')"><i class="ti ti-home"></i>ホーム</div>
+    <div class="tab" onclick="goTo('screen-char')"><i class="ti ti-shield"></i>キャラ</div>
+    <div class="tab active"><i class="ti ti-shirt"></i>ショップ</div>
+  </div>
+</div>
+
+<!-- ========== LEVEL UP OVERLAY ========== -->
+<div class="levelup-overlay" id="levelup-overlay">
+  <div class="levelup-box">
+    <p style="font-size:36px;margin-bottom:4px;">✨</p>
+    <p class="levelup-title">レベルアップ！</p>
+    <p class="levelup-sub" id="levelup-sub">Lv.5 — 魔法使い見習い になった！</p>
+    <div class="unlock-list" id="unlock-list"></div>
+    <button class="btn-primary" onclick="closeLevelup()">やった！</button>
+  </div>
 </div>
 
 <script>
-const questions = [
-  { word: "persevere", pos: "動詞", choices: ["やり抜く", "諦める", "急ぐ", "迷う"], answer: 0 },
-  { word: "eloquent", pos: "形容詞", choices: ["寡黙な", "雄弁な", "臆病な", "賢明な"], answer: 1 },
-  { word: "ambiguous", pos: "形容詞", choices: ["明確な", "曖昧な", "勇敢な", "退屈な"], answer: 1 },
-  { word: "frugal", pos: "形容詞", choices: ["派手な", "節約家の", "怠け者の", "誠実な"], answer: 1 },
-  { word: "resilient", pos: "形容詞", choices: ["脆い", "回復力のある", "攻撃的な", "内気な"], answer: 1 },
+const LEVELS = [
+  { lv:1, name:"まほうたまご",    days:0  },
+  { lv:2, name:"まほうひよこ",    days:3  },
+  { lv:3, name:"まほうこぞう",    days:7  },
+  { lv:4, name:"見習い魔法使い",  days:14 },
+  { lv:5, name:"魔法使い見習い",  days:21 },
+  { lv:6, name:"一人前の魔法使い",days:30 },
 ];
-const labels = ["A", "B", "C", "D"];
-let coins = 180;
-let currentQ = 0;
-let correctCount = 0;
-let answered = false;
+
+const SHOP_ITEMS = [
+  { id:"hat1",  cat:"hat",   name:"三角帽子",   cost:50,  unlockLv:1, icon:"ti-hat",         color:"#534AB7" },
+  { id:"hat2",  cat:"hat",   name:"星の冠",      cost:120, unlockLv:3, icon:"ti-crown",       color:"#EF9F27" },
+  { id:"hat3",  cat:"hat",   name:"魔法使いの帽子", cost:200, unlockLv:5, icon:"ti-hat",      color:"#3C3489" },
+  { id:"robe1", cat:"robe",  name:"白のローブ",  cost:80,  unlockLv:1, icon:"ti-shirt",       color:"#B4B2A9" },
+  { id:"robe2", cat:"robe",  name:"紫のローブ",  cost:150, unlockLv:4, icon:"ti-shirt",       color:"#7F77DD" },
+  { id:"robe3", cat:"robe",  name:"星空ローブ",  cost:250, unlockLv:6, icon:"ti-shirt",       color:"#3C3489" },
+  { id:"staff1",cat:"staff", name:"木の杖",      cost:60,  unlockLv:1, icon:"ti-wand",        color:"#854F0B" },
+  { id:"staff2",cat:"staff", name:"水晶の杖",    cost:130, unlockLv:3, icon:"ti-wand",        color:"#378ADD" },
+  { id:"staff3",cat:"staff", name:"ドラゴン杖",  cost:280, unlockLv:6, icon:"ti-wand",        color:"#E24B4A" },
+  { id:"acc1",  cat:"acc",   name:"勉強メガネ",  cost:40,  unlockLv:1, icon:"ti-eyeglass",    color:"#5F5E5A" },
+  { id:"acc2",  cat:"acc",   name:"魔法のマント",cost:100, unlockLv:2, icon:"ti-wind",        color:"#7F77DD" },
+  { id:"acc3",  cat:"acc",   name:"虹のスカーフ",cost:180, unlockLv:5, icon:"ti-rainbow",     color:"#D4537E" },
+];
+
+const QUESTIONS = [
+  { word:"persevere",  pos:"動詞",   choices:["やり抜く","諦める","急ぐ","迷う"],           answer:0 },
+  { word:"eloquent",   pos:"形容詞", choices:["寡黙な","雄弁な","臆病な","賢明な"],         answer:1 },
+  { word:"ambiguous",  pos:"形容詞", choices:["明確な","曖昧な","勇敢な","退屈な"],         answer:1 },
+  { word:"frugal",     pos:"形容詞", choices:["派手な","節約家の","怠け者の","誠実な"],     answer:1 },
+  { word:"resilient",  pos:"形容詞", choices:["脆い","回復力のある","攻撃的な","内気な"],   answer:1 },
+  { word:"diligent",   pos:"形容詞", choices:["怠け者の","勤勉な","臆病な","陽気な"],       answer:1 },
+  { word:"cunning",    pos:"形容詞", choices:["正直な","ずる賢い","穏やかな","勇敢な"],     answer:1 },
+  { word:"benevolent", pos:"形容詞", choices:["意地悪な","慈悲深い","無関心な","厳しい"],   answer:1 },
+  { word:"meticulous", pos:"形容詞", choices:["大雑把な","几帳面な","大胆な","のんきな"],   answer:1 },
+  { word:"audacious",  pos:"形容詞", choices:["臆病な","大胆不敵な","慎重な","穏やかな"],   answer:1 },
+];
+
+let state = {
+  coins: 180,
+  streak: 5,
+  owned: ["hat1","robe1","staff1"],
+  equipped: { hat:"hat1", robe:"robe1", staff:"staff1", acc:null },
+  shopFilter: "all",
+};
+
+function currentLevel() {
+  let lv = LEVELS[0];
+  for (const l of LEVELS) { if (state.streak >= l.days) lv = l; else break; }
+  return lv;
+}
+function nextLevel() {
+  const cur = currentLevel();
+  return LEVELS.find(l => l.lv === cur.lv + 1) || null;
+}
+
+function levelProgress() {
+  const cur = currentLevel();
+  const nxt = nextLevel();
+  if (!nxt) return 100;
+  const range = nxt.days - cur.days;
+  const done = state.streak - cur.days;
+  return Math.round(Math.min(100, done / range * 100));
+}
+
+function buildCharSVG(size, equipped) {
+  const hat = equipped.hat ? SHOP_ITEMS.find(i=>i.id===equipped.hat) : null;
+  const robe = equipped.robe ? SHOP_ITEMS.find(i=>i.id===equipped.robe) : null;
+  const acc = equipped.acc ? SHOP_ITEMS.find(i=>i.id===equipped.acc) : null;
+  const bodyColor = robe ? robe.color : "#7F77DD";
+  const hatColor = hat ? hat.color : "none";
+  const s = size;
+  const cx = s/2, cy = s/2;
+  let svg = `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" aria-hidden="true">`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${s*0.46}" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1.5"/>`;
+  svg += `<ellipse cx="${cx}" cy="${cy*1.12}" rx="${s*0.2}" ry="${s*0.23}" fill="${bodyColor}"/>`;
+  svg += `<circle cx="${cx}" cy="${cy*0.64}" r="${s*0.16}" fill="${bodyColor === '#7F77DD' ? '#534AB7' : bodyColor}"/>`;
+  svg += `<circle cx="${cx*0.86}" cy="${cy*0.60}" r="${s*0.035}" fill="white"/>`;
+  svg += `<circle cx="${cx*1.14}" cy="${cy*0.60}" r="${s*0.035}" fill="white"/>`;
+  svg += `<circle cx="${cx*0.86}" cy="${cy*0.60}" r="${s*0.015}" fill="#3C3489"/>`;
+  svg += `<circle cx="${cx*1.14}" cy="${cy*0.60}" r="${s*0.015}" fill="#3C3489"/>`;
+  svg += `<path d="M${cx*0.86} ${cy*0.76} Q${cx} ${cy*0.86} ${cx*1.14} ${cy*0.76}" stroke="white" stroke-width="${s*0.02}" fill="none" stroke-linecap="round"/>`;
+  svg += `<line x1="${cx*0.60}" y1="${cy}" x2="${cx*0.34}" y2="${cy*1.28}" stroke="${bodyColor}" stroke-width="${s*0.05}" stroke-linecap="round"/>`;
+  svg += `<line x1="${cx*1.40}" y1="${cy}" x2="${cx*1.66}" y2="${cy*1.28}" stroke="${bodyColor}" stroke-width="${s*0.05}" stroke-linecap="round"/>`;
+  if (hat && hatColor !== "none") {
+    svg += `<polygon points="${cx-s*0.08},${cy*0.32} ${cx},${cy*0.04} ${cx+s*0.08},${cy*0.32}" fill="${hatColor}" stroke="rgba(0,0,0,0.15)" stroke-width="1"/>`;
+  }
+  if (acc && acc.id === "acc1") {
+    svg += `<rect x="${cx*0.78}" y="${cy*0.55}" width="${s*0.12}" height="${s*0.08}" rx="2" fill="none" stroke="#5F5E5A" stroke-width="1.2"/>`;
+    svg += `<rect x="${cx*1.10}" y="${cy*0.55}" width="${s*0.12}" height="${s*0.08}" rx="2" fill="none" stroke="#5F5E5A" stroke-width="1.2"/>`;
+    svg += `<line x1="${cx*0.90}" y1="${cy*0.59}" x2="${cx*1.10}" y2="${cy*0.59}" stroke="#5F5E5A" stroke-width="1"/>`;
+  }
+  if (acc && acc.id === "acc3") {
+    svg += `<path d="M${cx*0.70} ${cy*0.85} Q${cx} ${cy*0.70} ${cx*1.30} ${cy*0.85}" stroke="#D4537E" stroke-width="${s*0.04}" fill="none" stroke-linecap="round" opacity="0.7"/>`;
+  }
+  svg += `</svg>`;
+  return svg;
+}
+
+function renderCharSVGs() {
+  const svgHome = document.getElementById('home-char-svg');
+  const svgChar = document.getElementById('char-svg');
+  if (svgHome) svgHome.innerHTML = buildCharSVG(100, state.equipped);
+  if (svgChar) svgChar.innerHTML = buildCharSVG(110, state.equipped);
+}
+
+function syncUI() {
+  document.querySelectorAll('.js-coins').forEach(el => el.textContent = state.coins);
+  document.querySelectorAll('.js-streak').forEach(el => el.textContent = state.streak);
+  const lv = currentLevel();
+  document.querySelectorAll('.js-level-label').forEach(el => el.textContent = `Lv.${lv.lv} — ${lv.name}`);
+  renderCharSVGs();
+  renderDaysRow();
+  renderExpBar();
+  renderEvoRow();
+  renderEquipped();
+}
+
+function renderDaysRow() {
+  const row = document.getElementById('days-row');
+  if (!row) return;
+  const dayNames = ['月','火','水','木','金','土','日'];
+  const today = new Date().getDay();
+  const offset = today === 0 ? 6 : today - 1;
+  row.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const div = document.createElement('div');
+    const daysAgo = offset - i;
+    if (i === offset) {
+      div.className = 'day-cell today';
+      div.innerHTML = `<i class="ti ti-star" style="font-size:13px"></i><br>${dayNames[i]}`;
+    } else if (i < offset && i >= Math.max(0, offset - state.streak + 1)) {
+      div.className = 'day-cell done';
+      div.innerHTML = `<i class="ti ti-check" style="font-size:13px"></i><br>${dayNames[i]}`;
+    } else {
+      div.className = 'day-cell empty';
+      div.innerHTML = `—<br>${dayNames[i]}`;
+    }
+    row.appendChild(div);
+  }
+  const bonus = 30 + Math.floor(state.streak / 7) * 10;
+  document.querySelectorAll('.js-bonus').forEach(el => el.textContent = bonus);
+}
+
+function renderExpBar() {
+  const bar = document.getElementById('exp-bar');
+  const hint = document.getElementById('next-level-hint');
+  const dtn = document.getElementById('days-to-next');
+  if (!bar) return;
+  const pct = levelProgress();
+  bar.style.width = pct + '%';
+  const nxt = nextLevel();
+  const cur = currentLevel();
+  if (nxt) {
+    const remaining = nxt.days - state.streak;
+    if (hint) hint.textContent = `あと${remaining}日でLv.${nxt.lv} — ${nxt.name} に進化！`;
+    if (dtn) dtn.textContent = remaining;
+  } else {
+    if (hint) hint.textContent = '最高レベルに到達しました！';
+    if (dtn) dtn.textContent = 0;
+  }
+}
+
+function renderEvoRow() {
+  const row = document.getElementById('evo-row');
+  if (!row) return;
+  const cur = currentLevel();
+  row.innerHTML = '';
+  LEVELS.forEach((l, idx) => {
+    if (idx > 0) {
+      const arrow = document.createElement('i');
+      arrow.className = 'ti ti-arrow-right';
+      arrow.style.cssText = 'font-size:12px;color:var(--text-hint)';
+      arrow.setAttribute('aria-hidden','true');
+      row.appendChild(arrow);
+    }
+    const pill = document.createElement('span');
+    pill.className = 'evo-pill ' + (l.lv < cur.lv ? 'done' : l.lv === cur.lv ? 'current' : 'future');
+    pill.textContent = l.lv === cur.lv ? `Lv.${l.lv} 今ここ` : (l.lv < cur.lv ? `Lv.${l.lv} ${l.name}` : `Lv.${l.lv} ???`);
+    row.appendChild(pill);
+  });
+}
+
+function renderEquipped() {
+  const el = document.getElementById('equipped-display');
+  if (!el) return;
+  const items = Object.values(state.equipped).filter(Boolean).map(id => SHOP_ITEMS.find(i=>i.id===id)).filter(Boolean);
+  if (items.length === 0) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--text-hint);">まだ何も装備していません</p>';
+    return;
+  }
+  el.innerHTML = items.map(item => `
+    <span style="display:inline-flex;align-items:center;gap:5px;background:var(--purple-50);color:var(--purple-600);font-size:12px;font-weight:600;padding:5px 10px;border-radius:99px;border:1px solid var(--purple-100);">
+      <i class="ti ${item.icon}" style="font-size:14px" aria-hidden="true"></i>${item.name}
+    </span>
+  `).join('');
+}
+
+function renderShop() {
+  const grid = document.getElementById('shop-grid');
+  if (!grid) return;
+  const cur = currentLevel();
+  const filtered = state.shopFilter === 'all' ? SHOP_ITEMS : SHOP_ITEMS.filter(i => i.cat === state.shopFilter);
+  grid.innerHTML = filtered.map(item => {
+    const unlocked = cur.lv >= item.unlockLv;
+    const owned = state.owned.includes(item.id);
+    const isEquipped = Object.values(state.equipped).includes(item.id);
+    let cls = 'shop-item';
+    let badge = '';
+    let costHtml = '';
+    if (isEquipped) { cls += ' equipped'; badge = '<span class="shop-item-badge badge-equipped">装備中</span>'; }
+    else if (owned) { cls += ' owned'; badge = '<span class="shop-item-badge badge-owned">所持済</span>'; }
+    else if (!unlocked) { cls += ' locked'; badge = `<span class="shop-item-badge badge-locked">Lv.${item.unlockLv}</span>`; }
+    if (!owned && unlocked) costHtml = `<p class="shop-item-cost"><i class="ti ti-coin" style="font-size:12px" aria-hidden="true"></i>${item.cost}</p>`;
+    else if (owned && !isEquipped) costHtml = `<p style="font-size:11px;color:var(--green-600);margin-top:3px;font-weight:600;">タップで装備</p>`;
+    else if (isEquipped) costHtml = `<p style="font-size:11px;color:var(--purple-600);margin-top:3px;font-weight:600;">装備中</p>`;
+    else if (!unlocked) costHtml = `<p style="font-size:11px;color:var(--text-hint);margin-top:3px;">Lv.${item.unlockLv}でアンロック</p>`;
+    return `
+      <div class="${cls}" onclick="shopTap('${item.id}')">
+        ${badge}
+        ${!unlocked ? `<div class="lock-icon"><i class="ti ti-lock" aria-hidden="true"></i></div>` : `<i class="ti ${item.icon}" style="font-size:32px;color:${item.color}" aria-hidden="true"></i>`}
+        <p class="shop-item-name">${item.name}</p>
+        ${costHtml}
+      </div>`;
+  }).join('');
+}
+
+function shopTap(id) {
+  const item = SHOP_ITEMS.find(i=>i.id===id);
+  const cur = currentLevel();
+  if (cur.lv < item.unlockLv) return;
+  if (state.owned.includes(id)) {
+    const isEquipped = Object.values(state.equipped).includes(id);
+    if (isEquipped) { state.equipped[item.cat] = null; }
+    else { state.equipped[item.cat] = id; }
+  } else {
+    if (state.coins < item.cost) { alert('コインが足りません！'); return; }
+    state.coins -= item.cost;
+    state.owned.push(id);
+    state.equipped[item.cat] = id;
+  }
+  syncUI();
+  renderShop();
+}
+
+function setFilter(cat, btn) {
+  state.shopFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderShop();
+}
 
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  syncCoins();
+  if (id === 'screen-shop') renderShop();
+  syncUI();
 }
 
-function syncCoins() {
-  ['home-coins','quiz-coins','result-coins','char-coins','char-coins2'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = coins;
-  });
-}
+let currentQ = 0, correctCount = 0, answered = false, quizPool = [];
+const LABELS = ["A","B","C","D"];
 
 function startQuiz() {
-  currentQ = 0;
-  correctCount = 0;
-  answered = false;
+  quizPool = [...QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 5);
+  currentQ = 0; correctCount = 0; answered = false;
   goTo('screen-quiz');
   renderQ();
 }
 
 function renderQ() {
   answered = false;
-  const q = questions[currentQ];
+  const q = quizPool[currentQ];
   document.getElementById('q-num').textContent = currentQ + 1;
   document.getElementById('q-correct').textContent = correctCount;
   document.getElementById('q-word').textContent = q.word;
   document.getElementById('q-pos').textContent = q.pos;
-  document.getElementById('progress-bar').style.width = ((currentQ + 1) / questions.length * 100) + '%';
+  document.getElementById('progress-bar').style.width = ((currentQ + 1) / quizPool.length * 100) + '%';
   const fb = document.getElementById('feedback');
   fb.className = 'feedback';
   document.getElementById('next-btn').style.display = 'none';
-
   const c = document.getElementById('choices');
   c.innerHTML = '';
   q.choices.forEach((ch, i) => {
     const b = document.createElement('button');
     b.className = 'btn-choice';
-    b.setAttribute('aria-label', '選択肢' + labels[i] + ': ' + ch);
-    b.innerHTML = '<span class="choice-label">' + labels[i] + '</span>' + ch;
+    b.innerHTML = `<span class="choice-label">${LABELS[i]}</span>${ch}`;
     b.onclick = () => select(i);
     c.appendChild(b);
   });
@@ -538,49 +575,60 @@ function renderQ() {
 function select(i) {
   if (answered) return;
   answered = true;
-  const q = questions[currentQ];
+  const q = quizPool[currentQ];
   const btns = document.querySelectorAll('.btn-choice');
   const fb = document.getElementById('feedback');
   btns[q.answer].classList.add('correct');
-
   if (i === q.answer) {
     correctCount++;
-    coins += 10;
+    state.coins += 10;
     fb.className = 'feedback correct show';
     fb.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> 正解！ +10コイン獲得';
   } else {
     btns[i].classList.add('wrong');
     fb.className = 'feedback wrong show';
-    fb.innerHTML = '<i class="ti ti-x" aria-hidden="true"></i> 不正解…正解は「' + q.choices[q.answer] + '」';
+    fb.innerHTML = `<i class="ti ti-x" aria-hidden="true"></i> 不正解… 正解は「${q.choices[q.answer]}」`;
   }
-
-  syncCoins();
-  const nextBtn = document.getElementById('next-btn');
-  nextBtn.style.display = 'flex';
-  if (currentQ === questions.length - 1) {
-    nextBtn.innerHTML = '結果を見る <i class="ti ti-trophy" aria-hidden="true"></i>';
-    nextBtn.onclick = showResult;
+  syncUI();
+  const nb = document.getElementById('next-btn');
+  nb.style.display = 'flex';
+  if (currentQ === quizPool.length - 1) {
+    nb.innerHTML = '結果を見る <i class="ti ti-trophy" aria-hidden="true"></i>';
+    nb.onclick = showResult;
   } else {
-    nextBtn.innerHTML = '次の問題 <i class="ti ti-arrow-right" aria-hidden="true"></i>';
-    nextBtn.onclick = nextQ;
+    nb.innerHTML = '次の問題 <i class="ti ti-arrow-right" aria-hidden="true"></i>';
+    nb.onclick = nextQ;
   }
 }
 
-function nextQ() {
-  currentQ++;
-  renderQ();
-}
+function nextQ() { currentQ++; renderQ(); }
 
 function showResult() {
-  const earned = correctCount * 10;
-  const messages = ['もう一度がんばろう！', 'いい調子！', 'なかなかいいね！', 'すごい！ほぼ完璧！', '完璧！満点！'];
-  document.getElementById('result-score').textContent = correctCount + ' / ' + questions.length;
-  document.getElementById('result-label').textContent = messages[correctCount] || '';
-  document.getElementById('res-coin-earn').textContent = '+' + earned;
-  document.getElementById('res-exp-earn').textContent = '+' + earned;
-  document.getElementById('res-streak').textContent = '5';
+  const msgs = ["もう一度がんばろう！","いい調子！","なかなかいいね！","すごい！","完璧！満点！"];
+  document.getElementById('result-score').textContent = `${correctCount} / ${quizPool.length}`;
+  document.getElementById('result-label').textContent = msgs[correctCount] || '';
+  document.getElementById('res-coin-earn').textContent = '+' + (correctCount * 10);
+  document.getElementById('res-streak').textContent = state.streak;
   goTo('screen-result');
 }
+
+function checkLevelUp(prevLv) {
+  const newLv = currentLevel().lv;
+  if (newLv > prevLv) {
+    const lv = currentLevel();
+    document.getElementById('levelup-sub').textContent = `Lv.${lv.lv} — ${lv.name} になった！`;
+    const newItems = SHOP_ITEMS.filter(i => i.unlockLv === lv.lv);
+    const ul = document.getElementById('unlock-list');
+    ul.innerHTML = newItems.length ? newItems.map(i =>
+      `<div class="unlock-item"><i class="ti ${i.icon}" style="font-size:18px;color:${i.color}" aria-hidden="true"></i><span>${i.name} がアンロック！</span></div>`
+    ).join('') : '<p style="font-size:13px;color:var(--text-secondary);">次のレベルも楽しみに！</p>';
+    document.getElementById('levelup-overlay').classList.add('show');
+  }
+}
+
+function closeLevelup() { document.getElementById('levelup-overlay').classList.remove('show'); }
+
+syncUI();
 </script>
 </body>
 </html>
