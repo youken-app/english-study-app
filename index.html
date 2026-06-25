@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>まなびクエスト — 英単語チャレンジ</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --purple-50: #EEEDFE;
+    --purple-100: #CECBF6;
+    --purple-200: #AFA9EC;
+    --purple-400: #7F77DD;
+    --purple-600: #534AB7;
+    --purple-800: #3C3489;
+    --amber-50: #FAEEDA;
+    --amber-200: #EF9F27;
+    --amber-600: #854F0B;
+    --amber-800: #633806;
+    --green-50: #EAF3DE;
+    --green-600: #3B6D11;
+    --green-800: #27500A;
+    --red-50: #FCEBEB;
+    --red-600: #A32D2D;
+    --red-800: #791F1F;
+    --bg: #F8F7FF;
+    --surface: #FFFFFF;
+    --border: rgba(83,74,183,0.15);
+    --text-primary: #1a1830;
+    --text-secondary: #6b6890;
+    --text-hint: #9e9bbd;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+  }
+
+  body {
+    font-family: 'Helvetica Neue', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px 16px 40px;
+  }
+
+  .app { width: 100%; max-width: 400px; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
+    margin-bottom: 20px;
+  }
+  .header-logo { font-size: 17px; font-weight: 700; color: var(--purple-600); letter-spacing: -0.3px; }
+  .coin-badge {
+    background: var(--amber-50);
+    color: var(--amber-800);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 99px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid rgba(239,159,39,0.4);
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+
+  /* Character SVG area */
+  .char-area { text-align: center; padding: 8px 0; }
+  .char-name { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-top: 10px; }
+  .char-level {
+    display: inline-block;
+    background: var(--purple-50);
+    color: var(--purple-600);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 12px;
+    border-radius: 99px;
+    margin-top: 6px;
+    border: 1px solid var(--purple-100);
+  }
+
+  /* Streak row */
+  .streak-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .streak-label p { font-size: 13px; color: var(--text-secondary); }
+  .streak-badge {
+    background: #FAECE7;
+    color: #712B13;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 99px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid rgba(216,90,48,0.3);
+  }
+  .days-row { display: flex; gap: 5px; margin-bottom: 16px; }
+  .day-cell {
+    flex: 1;
+    text-align: center;
+    padding: 7px 0;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .day-cell.done { background: var(--green-50); color: var(--green-800); }
+  .day-cell.today { background: var(--amber-50); color: var(--amber-800); border: 1.5px solid var(--amber-200); }
+  .day-cell.empty { background: #F3F2FA; color: var(--text-hint); }
+
+  .bonus-row { display: flex; align-items: center; justify-content: space-between; }
+  .bonus-amount { font-size: 26px; font-weight: 700; color: var(--amber-800); }
+  .bonus-amount span { font-size: 14px; font-weight: 400; color: var(--text-secondary); }
+
+  /* Buttons */
+  .btn-primary {
+    background: var(--purple-600);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-primary:hover { background: var(--purple-800); }
+  .btn-primary:active { transform: scale(0.98); }
+
+  .btn-choice {
+    background: var(--surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 13px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 9px;
+    text-align: left;
+    transition: background 0.12s, border-color 0.12s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .btn-choice:hover { background: var(--purple-50); border-color: var(--purple-200); }
+  .btn-choice.correct { background: var(--green-50); border-color: var(--green-600); color: var(--green-800); }
+  .btn-choice.wrong { background: var(--red-50); border-color: var(--red-600); color: var(--red-800); }
+  .btn-choice .choice-label {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: #F3F2FA;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .btn-choice.correct .choice-label { background: var(--green-600); color: white; }
+  .btn-choice.wrong .choice-label { background: var(--red-600); color: white; }
+
+  /* Feedback */
+  .feedback {
+    display: none;
+    padding: 11px 14px;
+    border-radius: var(--radius-md);
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    align-items: center;
+    gap: 8px;
+  }
+  .feedback.show { display: flex; }
+  .feedback.correct { background: var(--green-50); color: var(--green-800); border: 1px solid rgba(59,109,17,0.3); }
+  .feedback.wrong { background: var(--red-50); color: var(--red-800); border: 1px solid rgba(163,45,45,0.3); }
+
+  /* Progress bar */
+  .progress-wrap { background: #E8E6F8; border-radius: 99px; height: 6px; margin-bottom: 16px; }
+  .progress-bar { background: var(--purple-400); border-radius: 99px; height: 6px; transition: width 0.4s; }
+
+  /* Quiz word */
+  .quiz-prompt { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+  .quiz-word { font-size: 32px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.02em; margin-bottom: 4px; }
+  .quiz-pos { font-size: 13px; color: var(--purple-400); }
+
+  /* EXP bar */
+  .exp-bar-bg { background: #E8E6F8; border-radius: 99px; height: 10px; margin: 8px 0; }
+  .exp-bar { background: var(--purple-400); border-radius: 99px; height: 10px; transition: width 0.6s; }
+
+  /* Evolution row */
+  .evo-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12px; }
+  .evo-pill { padding: 3px 10px; border-radius: 99px; }
+  .evo-pill.done { background: var(--green-50); color: var(--green-800); }
+  .evo-pill.current { background: var(--purple-50); color: var(--purple-600); border: 1px solid var(--purple-200); font-weight: 600; }
+  .evo-pill.future { background: #F3F2FA; color: var(--text-hint); }
+
+  /* Tab bar */
+  .tab-bar {
+    display: flex;
+    border-top: 1px solid var(--border);
+    margin-top: 16px;
+    padding-top: 12px;
+    gap: 4px;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    font-size: 10px;
+    color: var(--text-hint);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    transition: background 0.1s, color 0.1s;
+  }
+  .tab i { font-size: 20px; display: block; margin-bottom: 2px; }
+  .tab.active { color: var(--purple-600); background: var(--purple-50); }
+  .tab:hover:not(.active) { background: #F3F2FA; color: var(--text-secondary); }
+
+  /* Result screen */
+  .result-stars { font-size: 40px; text-align: center; margin: 8px 0; }
+  .result-score { font-size: 48px; font-weight: 700; color: var(--purple-600); text-align: center; }
+  .result-label { font-size: 14px; color: var(--text-secondary); text-align: center; margin-bottom: 16px; }
+  .stat-row { display: flex; gap: 10px; }
+  .stat-cell {
+    flex: 1;
+    background: #F3F2FA;
+    border-radius: var(--radius-md);
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-cell .num { font-size: 22px; font-weight: 700; }
+  .stat-cell .lbl { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .progress-bar, .exp-bar { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ========== SCREEN: HOME ========== -->
+<div id="screen-home" class="screen active">
+  <div class="header">
+    <p class="header-logo"><i class="ti ti-wand" aria-hidden="true"></i> まなびクエスト</p>
+    <span class="coin-badge"><i class="ti ti-coin" aria-hidden="true"></i> <span id="home-coins">180</span></span>
+  </div>
+
+  <div class="card char-area">
+    <svg width="100" height="100" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="46" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1.5"/>
+      <ellipse cx="50" cy="56" rx="20" ry="23" fill="#7F77DD"/>
+      <circle cx="50" cy="32" r="16" fill="#534AB7"/>
+      <circle cx="43" cy="30" r="3.5" fill="white"/>
+      <circle cx="57" cy="30" r="3.5" fill="white"/>
+      <circle cx="43" cy="30" r="1.5" fill="#3C3489"/>
+      <circle cx="57" cy="30" r="1.5" fill="#3C3489"/>
+      <path d="M43 38 Q50 43 57 38" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <line x1="30" y1="52" x2="17" y2="64" stroke="#534AB7" stroke-width="5" stroke-linecap="round"/>
+      <line x1="70" y1="52" x2="83" y2="64" stroke="#534AB7" stroke-width="5" stroke-linecap="round"/>
+    </svg>
+    <p class="char-name">まなびん</p>
+    <span class="char-level">Lv.4 — 見習い魔法使い</span>
+  </div>
+
+  <div class="card">
+    <div class="streak-label">
+      <p>ログインボーナス</p>
+      <span class="streak-badge"><i class="ti ti-flame" aria-hidden="true"></i> 5日連続</span>
+    </div>
+    <div class="days-row">
+      <div class="day-cell done"><i class="ti ti-check" style="font-size:13px"></i><br>月</div>
+      <div class="day-cell done"><i class="ti ti-check" style="font-size:13px"></i><br>火</div>
+      <div class="day-cell done"><i class="ti ti-check" style="font-size:13px"></i><br>水</div>
+      <div class="day-cell done"><i class="ti ti-check" style="font-size:13px"></i><br>木</div>
+      <div class="day-cell done"><i class="ti ti-check" style="font-size:13px"></i><br>金</div>
+      <div class="day-cell today"><i class="ti ti-star" style="font-size:13px"></i><br>今日</div>
+      <div class="day-cell empty">—<br>日</div>
+    </div>
+    <div class="bonus-row">
+      <div>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">今日のボーナス</p>
+        <p class="bonus-amount">+30 <span>コイン</span></p>
+      </div>
+      <div style="text-align:right;">
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">所持コイン</p>
+        <span class="coin-badge" style="font-size:15px;padding:7px 14px;"><i class="ti ti-coin" aria-hidden="true"></i> 180</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-primary" onclick="startQuiz()">
+    <i class="ti ti-bolt" aria-hidden="true"></i> クイズをはじめる
+  </button>
+
+  <div class="tab-bar">
+    <div class="tab active" onclick="goTo('screen-home')"><i class="ti ti-home"></i>ホーム</div>
+    <div class="tab" onclick="goTo('screen-char')"><i class="ti ti-shield"></i>キャラ</div>
+    <div class="tab" onclick="goTo('screen-home')"><i class="ti ti-chart-bar"></i>記録</div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: QUIZ ========== -->
+<div id="screen-quiz" class="screen">
+  <div class="header">
+    <p class="header-logo"><i class="ti ti-wand" aria-hidden="true"></i> まなびクエスト</p>
+    <span class="coin-badge"><i class="ti ti-coin" aria-hidden="true"></i> <span id="quiz-coins">180</span></span>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 2px;">
+    <p style="font-size:13px;color:var(--text-secondary);">問題 <span id="q-num">1</span> / 5</p>
+    <p style="font-size:13px;color:var(--text-secondary);">正解 <span id="q-correct">0</span> 問</p>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progress-bar" style="width:20%"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <p class="quiz-prompt">次の英単語の意味は？</p>
+    <p class="quiz-word" id="q-word">persevere</p>
+    <p class="quiz-pos" id="q-pos">動詞</p>
+  </div>
+
+  <div id="choices"></div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <button class="btn-primary" id="next-btn" style="display:none;" onclick="nextQ()">
+    次の問題 <i class="ti ti-arrow-right" aria-hidden="true"></i>
+  </button>
+
+  <div class="tab-bar">
+    <div class="tab" onclick="goTo('screen-home')"><i class="ti ti-home"></i>ホーム</div>
+    <div class="tab" onclick="goTo('screen-char')"><i class="ti ti-shield"></i>キャラ</div>
+    <div class="tab"><i class="ti ti-chart-bar"></i>記録</div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: RESULT ========== -->
+<div id="screen-result" class="screen">
+  <div class="header">
+    <p class="header-logo"><i class="ti ti-wand" aria-hidden="true"></i> まなびクエスト</p>
+    <span class="coin-badge"><i class="ti ti-coin" aria-hidden="true"></i> <span id="result-coins">180</span></span>
+  </div>
+
+  <div class="card" style="text-align:center; padding: 28px 20px;">
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:4px;">クイズ結果</p>
+    <p class="result-score" id="result-score">4 / 5</p>
+    <p class="result-label" id="result-label">すごい！ほぼ完璧！</p>
+    <div class="stat-row">
+      <div class="stat-cell">
+        <p class="num" style="color:var(--purple-600)" id="res-coin-earn">+40</p>
+        <p class="lbl">獲得コイン</p>
+      </div>
+      <div class="stat-cell">
+        <p class="num" style="color:#3B6D11" id="res-exp-earn">+40</p>
+        <p class="lbl">獲得EXP</p>
+      </div>
+      <div class="stat-cell">
+        <p class="num" id="res-streak">5</p>
+        <p class="lbl">連続日数</p>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-primary" onclick="goTo('screen-char')" style="margin-bottom:10px;">
+    <i class="ti ti-shield" aria-hidden="true"></i> キャラを確認する
+  </button>
+  <button class="btn-primary" style="background:white;color:var(--purple-600);border:1.5px solid var(--purple-200);" onclick="startQuiz()">
+    <i class="ti ti-refresh" aria-hidden="true"></i> もう一度チャレンジ
+  </button>
+
+  <div class="tab-bar">
+    <div class="tab" onclick="goTo('screen-home')"><i class="ti ti-home"></i>ホーム</div>
+    <div class="tab" onclick="goTo('screen-char')"><i class="ti ti-shield"></i>キャラ</div>
+    <div class="tab"><i class="ti ti-chart-bar"></i>記録</div>
+  </div>
+</div>
+
+<!-- ========== SCREEN: CHARACTER ========== -->
+<div id="screen-char" class="screen">
+  <div class="header">
+    <p class="header-logo"><i class="ti ti-wand" aria-hidden="true"></i> まなびクエスト</p>
+    <span class="coin-badge"><i class="ti ti-coin" aria-hidden="true"></i> <span id="char-coins">180</span></span>
+  </div>
+
+  <div class="card char-area">
+    <svg width="110" height="110" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="46" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1.5"/>
+      <ellipse cx="50" cy="56" rx="20" ry="23" fill="#7F77DD"/>
+      <circle cx="50" cy="32" r="16" fill="#534AB7"/>
+      <circle cx="43" cy="30" r="3.5" fill="white"/>
+      <circle cx="57" cy="30" r="3.5" fill="white"/>
+      <circle cx="43" cy="30" r="1.5" fill="#3C3489"/>
+      <circle cx="57" cy="30" r="1.5" fill="#3C3489"/>
+      <path d="M43 38 Q50 43 57 38" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <line x1="30" y1="52" x2="17" y2="64" stroke="#534AB7" stroke-width="5" stroke-linecap="round"/>
+      <line x1="70" y1="52" x2="83" y2="64" stroke="#534AB7" stroke-width="5" stroke-linecap="round"/>
+      <polygon points="42,14 50,2 58,14" fill="#EF9F27" stroke="#854F0B" stroke-width="1"/>
+    </svg>
+    <p class="char-name">まなびん</p>
+    <span class="char-level">Lv.4 — 見習い魔法使い</span>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+      <p style="font-size:13px;color:var(--text-secondary);">経験値</p>
+      <p style="font-size:13px;color:var(--text-secondary);"><span id="exp-val">320</span> / 500 EXP</p>
+    </div>
+    <div class="exp-bar-bg">
+      <div class="exp-bar" id="exp-bar" style="width:64%"></div>
+    </div>
+    <p style="font-size:12px;color:var(--text-hint);margin-top:6px;">あと180EXPでLv.5 — 魔法使い見習い に進化！</p>
+  </div>
+
+  <div class="card">
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">進化の軌跡</p>
+    <div class="evo-row">
+      <span class="evo-pill done">Lv.1 まほうたまご</span>
+      <i class="ti ti-arrow-right" style="font-size:12px;color:var(--text-hint)" aria-hidden="true"></i>
+      <span class="evo-pill done">Lv.2 まほうひよこ</span>
+      <i class="ti ti-arrow-right" style="font-size:12px;color:var(--text-hint)" aria-hidden="true"></i>
+      <span class="evo-pill done">Lv.3 まほうこぞう</span>
+      <i class="ti ti-arrow-right" style="font-size:12px;color:var(--text-hint)" aria-hidden="true"></i>
+      <span class="evo-pill current">Lv.4 今ここ</span>
+      <i class="ti ti-arrow-right" style="font-size:12px;color:var(--text-hint)" aria-hidden="true"></i>
+      <span class="evo-pill future">Lv.5 ???</span>
+    </div>
+  </div>
+
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;">所持コイン</p>
+      <span class="coin-badge" style="font-size:15px;padding:7px 14px;"><i class="ti ti-coin" aria-hidden="true"></i> <span id="char-coins2">180</span></span>
+    </div>
+    <button style="background:var(--amber-50);color:var(--amber-800);border:1px solid rgba(239,159,39,0.5);border-radius:var(--radius-md);padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;line-height:1.5;">
+      <i class="ti ti-shirt" aria-hidden="true"></i><br>コスチューム<br>ショップ
+    </button>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab" onclick="goTo('screen-home')"><i class="ti ti-home"></i>ホーム</div>
+    <div class="tab active"><i class="ti ti-shield"></i>キャラ</div>
+    <div class="tab"><i class="ti ti-chart-bar"></i>記録</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const questions = [
+  { word: "persevere", pos: "動詞", choices: ["やり抜く", "諦める", "急ぐ", "迷う"], answer: 0 },
+  { word: "eloquent", pos: "形容詞", choices: ["寡黙な", "雄弁な", "臆病な", "賢明な"], answer: 1 },
+  { word: "ambiguous", pos: "形容詞", choices: ["明確な", "曖昧な", "勇敢な", "退屈な"], answer: 1 },
+  { word: "frugal", pos: "形容詞", choices: ["派手な", "節約家の", "怠け者の", "誠実な"], answer: 1 },
+  { word: "resilient", pos: "形容詞", choices: ["脆い", "回復力のある", "攻撃的な", "内気な"], answer: 1 },
+];
+const labels = ["A", "B", "C", "D"];
+let coins = 180;
+let currentQ = 0;
+let correctCount = 0;
+let answered = false;
+
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  syncCoins();
+}
+
+function syncCoins() {
+  ['home-coins','quiz-coins','result-coins','char-coins','char-coins2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = coins;
+  });
+}
+
+function startQuiz() {
+  currentQ = 0;
+  correctCount = 0;
+  answered = false;
+  goTo('screen-quiz');
+  renderQ();
+}
+
+function renderQ() {
+  answered = false;
+  const q = questions[currentQ];
+  document.getElementById('q-num').textContent = currentQ + 1;
+  document.getElementById('q-correct').textContent = correctCount;
+  document.getElementById('q-word').textContent = q.word;
+  document.getElementById('q-pos').textContent = q.pos;
+  document.getElementById('progress-bar').style.width = ((currentQ + 1) / questions.length * 100) + '%';
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback';
+  document.getElementById('next-btn').style.display = 'none';
+
+  const c = document.getElementById('choices');
+  c.innerHTML = '';
+  q.choices.forEach((ch, i) => {
+    const b = document.createElement('button');
+    b.className = 'btn-choice';
+    b.setAttribute('aria-label', '選択肢' + labels[i] + ': ' + ch);
+    b.innerHTML = '<span class="choice-label">' + labels[i] + '</span>' + ch;
+    b.onclick = () => select(i);
+    c.appendChild(b);
+  });
+}
+
+function select(i) {
+  if (answered) return;
+  answered = true;
+  const q = questions[currentQ];
+  const btns = document.querySelectorAll('.btn-choice');
+  const fb = document.getElementById('feedback');
+  btns[q.answer].classList.add('correct');
+
+  if (i === q.answer) {
+    correctCount++;
+    coins += 10;
+    fb.className = 'feedback correct show';
+    fb.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> 正解！ +10コイン獲得';
+  } else {
+    btns[i].classList.add('wrong');
+    fb.className = 'feedback wrong show';
+    fb.innerHTML = '<i class="ti ti-x" aria-hidden="true"></i> 不正解…正解は「' + q.choices[q.answer] + '」';
+  }
+
+  syncCoins();
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.style.display = 'flex';
+  if (currentQ === questions.length - 1) {
+    nextBtn.innerHTML = '結果を見る <i class="ti ti-trophy" aria-hidden="true"></i>';
+    nextBtn.onclick = showResult;
+  } else {
+    nextBtn.innerHTML = '次の問題 <i class="ti ti-arrow-right" aria-hidden="true"></i>';
+    nextBtn.onclick = nextQ;
+  }
+}
+
+function nextQ() {
+  currentQ++;
+  renderQ();
+}
+
+function showResult() {
+  const earned = correctCount * 10;
+  const messages = ['もう一度がんばろう！', 'いい調子！', 'なかなかいいね！', 'すごい！ほぼ完璧！', '完璧！満点！'];
+  document.getElementById('result-score').textContent = correctCount + ' / ' + questions.length;
+  document.getElementById('result-label').textContent = messages[correctCount] || '';
+  document.getElementById('res-coin-earn').textContent = '+' + earned;
+  document.getElementById('res-exp-earn').textContent = '+' + earned;
+  document.getElementById('res-streak').textContent = '5';
+  goTo('screen-result');
+}
+</script>
+</body>
+</html>
