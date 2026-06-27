@@ -2457,7 +2457,7 @@ function gGoTo(id) {
     if (activeTab) document.getElementById(activeTab).classList.add('gta');
   }
 
-  if (id === 'scMap')      gRenderMap();
+  if (id === 'scMap')      { gDungeonViewStage = null; gRenderMap(); }
   if (id === 'scDungeon')  gRenderDungeon();
   if (id === 'scWordbook') gRenderWordbook();
   if (id === 'scShop')     gRenderShop();
@@ -2493,8 +2493,8 @@ function gRenderMap() {
   for (let i = 1; i <= 30; i++) {
     const el = document.createElement('div');
     const cleared = gCleared.includes(i);
-    const active  = i === gStage;
-    const locked  = i > gStage;
+    const active  = i === gStage && !cleared;
+    const locked  = !cleared && i > gStage;
     const hasRevenge = Object.keys(gReview).some(no => {
       const n = parseInt(no);
       return n >= (i-1)*50+1 && n <= i*50;
@@ -2538,10 +2538,27 @@ function gRenderMapStageCard() {
   card.innerHTML = html;
 }
 
+let gDungeonViewStage = null; // クリア済みダンジョン閲覧用
+
 function gSelectStage(n) {
-  gStage = n;
-  gSave();
-  gRenderMap();
+  if (gCleared.includes(n)) {
+    // クリア済みは閲覧モードでダンジョンに入る
+    gDungeonViewStage = n;
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('scDungeon').classList.add('active');
+    gSyncCoins();
+    // ダンジョン描画だけnで行う
+    const saved = gStage;
+    gStage = n;
+    gRenderDungeon();
+    gStage = saved;
+    document.querySelectorAll('.gtab').forEach(t => t.classList.remove('gta'));
+    document.getElementById('gtab-dungeon').classList.add('gta');
+  } else {
+    gStage = n;
+    gSave();
+    gRenderMap();
+  }
 }
 
 /* ── ダンジョン描画 ── */
@@ -2556,18 +2573,20 @@ function gBossMaxHP(stageNo) {
 function gRenderDungeon() {
   const s = gStage;
   const atk = gCalcAtk();
+  const isCleared = gCleared.includes(s);
   const hdr = document.getElementById('dungeon-header');
   hdr.innerHTML = `
     <p style="font-size:13px;font-weight:600;margin-bottom:4px">Stage ${s} — ${STAGE_BOSSES[s-1]}</p>
     <div style="display:flex;gap:14px;font-size:12px;color:#888">
       <span>⚔️ 攻撃力 ${atk}</span>
       <span style="color:#534AB7">🎯 ボス条件 ${s*10}</span>
+      ${isCleared ? '<span style="color:#3B6D11">✅ クリア済み</span>' : ''}
     </div>`;
 
   const floors = document.getElementById('dungeon-floors');
   floors.innerHTML = '';
 
-  // リベンジフロア
+  // リベンジフロア（クリア済みでも表示）
   const revengeNos = Object.keys(gReview).filter(no => {
     const n = parseInt(no);
     return n >= (s-1)*50+1 && n <= s*50;
@@ -2582,12 +2601,23 @@ function gRenderDungeon() {
       ).join('')}</div>
       <span class="floor-badge fb-rev">🪙 1.5倍</span>`;
     floors.appendChild(row);
+    if (isCleared) {
+      const msg = document.createElement('div');
+      msg.style.cssText = 'text-align:center;padding:10px 16px;color:#aaa;font-size:12px;';
+      msg.textContent = '※ クリア済みのため怨霊フロアのみ表示しています';
+      floors.appendChild(msg);
+      return;
+    }
+  } else if (isCleared) {
+    const msg = document.createElement('div');
+    msg.style.cssText = 'text-align:center;padding:28px 16px;color:#888;font-size:13px;line-height:1.8;';
+    msg.innerHTML = '✅ このステージはクリア済みです。<br>怨霊もいません！';
+    floors.appendChild(msg);
+    return;
   }
 
-  // 通常フロア F1〜F3
-  const FLOOR_ENEMIES = [
-    [0,1],[2,3],[4,5]
-  ];
+  // 通常フロア F1〜F3（進行中のみ）
+  const FLOOR_ENEMIES = [[0,1],[2,3],[4,5]];
   FLOOR_ENEMIES.forEach((pair, fi) => {
     const row = document.createElement('div');
     row.className = 'floor-row';
@@ -2810,34 +2840,39 @@ function gToggleHint() {
   document.getElementById('bhint-panel').classList.toggle('bhs', gHintShown);
   document.getElementById('bhint-btn').textContent = gHintShown ? '📖 ヒントを閉じる' : '📖 ヒントを見る（単語帳）';
   if (gHintShown) {
-    // 例文のみセット・意味は隠す
     document.getElementById('bh-ex').textContent = gBattleWord.ex || '';
-    document.getElementById('bh-ja').style.display = 'none';
-    document.getElementById('bh-answer-btn').style.display = 'inline-block';
+    // 回答済みの場合は意味をそのまま表示、未回答は隠す
+    if (gAnswered) {
+      document.getElementById('bh-ja').textContent = gBattleWord.mean;
+      document.getElementById('bh-ja').style.display = 'block';
+      document.getElementById('bh-answer-btn').style.display = 'none';
+    } else {
+      document.getElementById('bh-ja').style.display = 'none';
+      document.getElementById('bh-answer-btn').style.display = 'inline-block';
+    }
     // 例文を読み上げ（ゆっくり0.5）
     gSpeakWord(gBattleWord.ex || gBattleWord.word, 0.5);
   }
 }
 
 function gShowHintAnswer() {
+  // 回答済みの場合は意味を表示するだけ（それ以外の処理はしない）
   document.getElementById('bh-ja').textContent = gBattleWord.mean;
   document.getElementById('bh-ja').style.display = 'block';
   document.getElementById('bh-answer-btn').style.display = 'none';
-  // 選択肢をロック（回答不可能に）
+  if (gAnswered) return;
+  // 未回答の場合のみロック・不正解処理を行う
   document.querySelectorAll('.bchoice').forEach(b => {
     b.disabled = true;
     b.style.opacity = '0.4';
     b.style.cursor = 'default';
   });
-  // 不正解扱いとして復習リストに追加
   const no = gBattleWord.no;
   gReview[no] = (gReview[no] || 0) + 1;
   gSave();
-  // フィードバック表示
   const fb = document.getElementById('bfeedback');
   fb.className = 'bfeedback bf-ng bfs';
   fb.textContent = '📖 答えを確認しました。復習リストに追加されました。';
-  // 次の問題ボタンを表示
   const nb = document.getElementById('bnext-btn');
   nb.textContent = '次の問題 →';
   nb.onclick = gNextQ;
@@ -2938,6 +2973,18 @@ function gShowResult() {
   if (isBoss) {
     nb.textContent = '🗺️ 次のステージへ！';
     nb.onclick = () => gGoTo('scMap');
+  } else if (gDungeonViewStage) {
+    // クリア済みダンジョン閲覧中の場合
+    nb.textContent = '← ダンジョンに戻る';
+    nb.onclick = () => {
+      const n = gDungeonViewStage;
+      const saved = gStage;
+      gStage = n;
+      gGoTo('scDungeon');
+      gStage = saved;
+      document.querySelectorAll('.gtab').forEach(t => t.classList.remove('gta'));
+      document.getElementById('gtab-dungeon').classList.add('gta');
+    };
   } else {
     nb.textContent = '← ダンジョンに戻る';
     nb.onclick = () => gGoTo('scDungeon');
@@ -3032,6 +3079,13 @@ function gBuyItem(item) {
 
 /* ── 初期化 ── */
 function gInit() {
+  // gStageとgClearedの整合性チェック
+  // クリア済みステージがgStage以上なら次のステージに修正
+  const maxCleared = gCleared.length > 0 ? Math.max(...gCleared) : 0;
+  if (maxCleared >= gStage) {
+    gStage = Math.min(maxCleared + 1, 30);
+    gSave();
+  }
   gCheckLogin();
   gSyncCoins();
   document.getElementById('gtabbar-common').style.display = 'flex';
