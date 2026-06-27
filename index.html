@@ -2383,11 +2383,18 @@ const STAGE_BOSSES = [
   '古代の神','混沌の化身','虚無の王','滅びの使者','始原の竜',
   '禁忌の賢者','宇宙の支配者','時空の破壊者','神話の魔帝','最終魔王',
 ];
-const ENEMY_NAMES = [
-  ['スライム','コウモリ'],['ゴースト','ゴブリン'],['オーク','ウィザード'],
-  ['ダークエルフ','スケルトン'],['デーモン','ヴァンパイア'],
+const ENEMIES = [
+  { name:'スライム',    icon:'🟢' },
+  { name:'コウモリ',    icon:'🦇' },
+  { name:'ゴースト',    icon:'👻' },
+  { name:'ゴブリン',    icon:'😈' },
+  { name:'オーク',      icon:'🧌' },
+  { name:'ウィザード',  icon:'🧙' },
+  { name:'スケルトン',  icon:'💀' },
+  { name:'ヴァンパイア',icon:'🧛' },
+  { name:'デーモン',    icon:'👹' },
+  { name:'ダークエルフ',icon:'🧝' },
 ];
-const ENEMY_ICONS = ['👾','🦇','💀','🧌','🧛','🐉','👿','🧟','🦄','🔮'];
 
 /* ── 攻撃力計算 ── */
 function gCalcAtk() {
@@ -2585,8 +2592,9 @@ function gRenderDungeon() {
     const row = document.createElement('div');
     row.className = 'floor-row';
     const enemies = pair.map((ei, idx) => {
-      const eName = (ENEMY_NAMES[fi % ENEMY_NAMES.length] || ENEMY_NAMES[0])[idx] || '魔物';
-      const eIcon = ENEMY_ICONS[(s + fi * 2 + idx) % ENEMY_ICONS.length];
+      const enemyIdx = (s * 3 + fi * 2 + idx) % ENEMIES.length;
+      const eName = ENEMIES[enemyIdx].name;
+      const eIcon = ENEMIES[enemyIdx].icon;
       const hpKey = `${s}_${fi}_${idx}`;
       const savedHP = gEnemyHP[hpKey];
       const maxHP = (fi + 1) * 10 + s * 2;
