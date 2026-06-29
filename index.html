@@ -452,6 +452,7 @@ body {
     </div>
     <div id="br-revenge-bonus" style="display:none;background:#FAECE7;border-radius:10px;padding:8px;font-size:12px;color:#712B13;margin-bottom:6px">👻 リベンジボーナス！コイン1.5倍</div>
     <div id="br-boss-bonus" style="display:none;background:#FAEEDA;border-radius:10px;padding:8px;font-size:12px;color:#633806">👑 ボスクリア！ステージボーナス <span id="br-boss-coin">+40</span>コイン</div>
+    <div id="br-floor-reset" style="display:none;background:#EAF3DE;border-radius:10px;padding:8px;font-size:12px;color:#27500A;margin-top:6px">🔄 全フロアクリア！雑魚がリセットされました。引き続き周回できます。</div>
   </div>
   <button class="gbtn gp" id="br-next-btn" onclick="gGoTo('scDungeon')">← ダンジョンに戻る</button>
   <button class="gbtn" onclick="gGoTo('scMap')">🗺️ マップに戻る</button>
@@ -2356,39 +2357,45 @@ const ALL_WORDS = [
 ════════════════════════════════════════════ */
 
 /* ── ゲーム用 LocalStorage キー ── */
-const GK_COINS    = 'mq_coins';
-const GK_STAGE    = 'mq_stage';      // 現在の進行ステージ（1〜30）
-const GK_CLEARED  = 'mq_cleared';   // クリア済みステージ配列
-const GK_ENEMY_HP = 'mq_enemy_hp';  // 敵HP保存 { "stage_floor_idx": hp }
-const GK_REVIEW   = 'mq_review';    // 復習リスト { wordNo: wrongCount }
-const GK_OWNED    = 'mq_owned';     // 所持装備
-const GK_LOGIN    = 'mq_login';     // ログインボーナス { lastDate, streak }
-const GK_CORRECT  = 'mq_correct';  // 正解済み単語 { stageNo: [wordNo, ...] }
-let gCorrect = JSON.parse(localStorage.getItem(GK_CORRECT)) || {};
+/* ── LocalStorageキー ── */
+const GK_COINS         = 'mq_coins';          // コイン残高
+const GK_STAGE         = 'mq_stage';          // 進行中ステージ番号
+const GK_CLEARED       = 'mq_cleared';        // クリア済みステージ配列
+const GK_ENEMY_HP      = 'mq_enemy_hp';       // 敵HP保存 { "stage_floor_idx": hp }
+const GK_REVIEW        = 'mq_review';         // 復習リスト { wordNo: count }
+const GK_OWNED         = 'mq_owned';          // 所持装備ID配列
+const GK_LOGIN         = 'mq_login';          // ログインボーナス { lastDate, streak }
+const GK_STEPS         = 'mq_steps';          // 予習完了 { stageNo: [bool,bool,bool] }
+const GK_CORRECT       = 'mq_correct';        // 正解済み単語 { stageNo: [wordNo,...] }
+const GK_ENHANCE       = 'mq_enhance';        // 強化データ { itemId: 強化回数 }
+const GK_BOSS_UNLOCKED = 'mq_boss_unlocked';  // ボス解放済みステージ配列
 
-const GK_STEPS    = 'mq_steps';     // 予習完了 { stageNo: [true,false,false] }
-let gCoins   = parseInt(localStorage.getItem(GK_COINS))  || 0;
-let gStage   = parseInt(localStorage.getItem(GK_STAGE))  || 1;
-let gCleared = JSON.parse(localStorage.getItem(GK_CLEARED)) || [];
-let gEnemyHP = JSON.parse(localStorage.getItem(GK_ENEMY_HP)) || {};
-let gReview  = JSON.parse(localStorage.getItem(GK_REVIEW))   || {};
-let gOwned   = JSON.parse(localStorage.getItem(GK_OWNED))    || [];
-let gSteps   = JSON.parse(localStorage.getItem(GK_STEPS))    || {};
+/* ── ゲーム状態（localStorage から復元） ── */
+let gCoins        = parseInt(localStorage.getItem(GK_COINS))       || 0;
+let gStage        = parseInt(localStorage.getItem(GK_STAGE))       || 1;
+let gCleared      = JSON.parse(localStorage.getItem(GK_CLEARED))       || [];
+let gEnemyHP      = JSON.parse(localStorage.getItem(GK_ENEMY_HP))      || {};
+let gReview       = JSON.parse(localStorage.getItem(GK_REVIEW))        || {};
+let gOwned        = JSON.parse(localStorage.getItem(GK_OWNED))         || [];
+let gSteps        = JSON.parse(localStorage.getItem(GK_STEPS))         || {};
+let gCorrect      = JSON.parse(localStorage.getItem(GK_CORRECT))       || {};
+let gEnhance      = JSON.parse(localStorage.getItem(GK_ENHANCE))       || {};
+let gBossUnlocked = JSON.parse(localStorage.getItem(GK_BOSS_UNLOCKED)) || [];
 
 /* ── ショップ装備定義 ── */
 const SHOP_ITEMS = [
-  { id:'hat1',   cat:'帽子',   name:'三角帽子',       cost:100,  atk:8,   def:0,  unlockStage:1,  icon:'🎩' },
-  { id:'robe1',  cat:'ローブ', name:'白のローブ',     cost:150,  atk:12,  def:3,  unlockStage:1,  icon:'👘' },
-  { id:'staff1', cat:'杖',     name:'木の杖',          cost:120,  atk:10,  def:0,  unlockStage:1,  icon:'🪄' },
-  { id:'acc1',   cat:'アクセ', name:'勉強メガネ',     cost:80,   atk:5,   def:2,  unlockStage:1,  icon:'👓' },
-  { id:'hat2',   cat:'帽子',   name:'星の冠',          cost:300,  atk:22,  def:5,  unlockStage:5,  icon:'👑' },
-  { id:'robe2',  cat:'ローブ', name:'紫のローブ',     cost:400,  atk:30,  def:10, unlockStage:8,  icon:'🥷' },
-  { id:'staff2', cat:'杖',     name:'水晶の杖',         cost:350,  atk:26,  def:0,  unlockStage:6,  icon:'🔮' },
-  { id:'acc2',   cat:'アクセ', name:'魔法のマント',   cost:250,  atk:15,  def:8,  unlockStage:4,  icon:'🦸' },
-  { id:'hat3',   cat:'帽子',   name:'魔法使いの帽子', cost:800,  atk:55,  def:10, unlockStage:15, icon:'🧙' },
-  { id:'robe3',  cat:'ローブ', name:'星空ローブ',     cost:1000, atk:70,  def:20, unlockStage:20, icon:'✨' },
-  { id:'staff3', cat:'杖',     name:'ドラゴン杖',     cost:900,  atk:62,  def:5,  unlockStage:18, icon:'🐉' },
-  { id:'acc3',   cat:'アクセ', name:'虹のスカーフ',   cost:700,  atk:40,  def:15, unlockStage:12, icon:'🌈' },
+  { id:'hat1',   cat:'帽子',   name:'三角帽子',       cost:100,  atk:3,   def:0,  unlockStage:1,  icon:'🎩' },
+  { id:'robe1',  cat:'ローブ', name:'白のローブ',     cost:150,  atk:5,   def:3,  unlockStage:1,  icon:'👘' },
+  { id:'staff1', cat:'杖',     name:'木の杖',          cost:120,  atk:4,   def:0,  unlockStage:1,  icon:'🪄' },
+  { id:'acc1',   cat:'アクセ', name:'勉強メガネ',     cost:80,   atk:2,   def:2,  unlockStage:1,  icon:'👓' },
+  { id:'hat2',   cat:'帽子',   name:'星の冠',          cost:300,  atk:10,  def:5,  unlockStage:5,  icon:'👑' },
+  { id:'robe2',  cat:'ローブ', name:'紫のローブ',     cost:400,  atk:14,  def:10, unlockStage:8,  icon:'🥷' },
+  { id:'staff2', cat:'杖',     name:'水晶の杖',        cost:350,  atk:12,  def:0,  unlockStage:6,  icon:'🔮' },
+  { id:'acc2',   cat:'アクセ', name:'魔法のマント',   cost:250,  atk:7,   def:8,  unlockStage:4,  icon:'🦸' },
+  { id:'hat3',   cat:'帽子',   name:'魔法使いの帽子', cost:800,  atk:28,  def:10, unlockStage:15, icon:'🧙' },
+  { id:'robe3',  cat:'ローブ', name:'星空ローブ',     cost:1000, atk:38,  def:20, unlockStage:20, icon:'✨' },
+  { id:'staff3', cat:'杖',     name:'ドラゴン杖',     cost:900,  atk:32,  def:5,  unlockStage:18, icon:'🐉' },
+  { id:'acc3',   cat:'アクセ', name:'虹のスカーフ',   cost:700,  atk:20,  def:15, unlockStage:12, icon:'🌈' },
 ];
 
 /* ── ステージ定義（ボス名・フロア構成） ── */
@@ -2417,7 +2424,8 @@ const ENEMIES = [
 function gCalcAtk() {
   return gOwned.reduce((sum, id) => {
     const item = SHOP_ITEMS.find(i => i.id === id);
-    return sum + (item ? item.atk : 0);
+    const enhance = gEnhance[id] || 0;
+    return sum + (item ? item.atk + enhance * 2 : 0);
   }, 10); // 素手10
 }
 
@@ -2439,13 +2447,16 @@ function gMakeChoices(word) {
 
 /* ── 保存 ── */
 function gSave() {
-  localStorage.setItem(GK_COINS,    gCoins);
-  localStorage.setItem(GK_STAGE,    gStage);
-  localStorage.setItem(GK_CLEARED,  JSON.stringify(gCleared));
-  localStorage.setItem(GK_ENEMY_HP, JSON.stringify(gEnemyHP));
-  localStorage.setItem(GK_REVIEW,   JSON.stringify(gReview));
-  localStorage.setItem(GK_OWNED,    JSON.stringify(gOwned));
-  localStorage.setItem(GK_CORRECT,   JSON.stringify(gCorrect));
+  localStorage.setItem(GK_COINS,         gCoins);
+  localStorage.setItem(GK_STAGE,         gStage);
+  localStorage.setItem(GK_CLEARED,       JSON.stringify(gCleared));
+  localStorage.setItem(GK_ENEMY_HP,      JSON.stringify(gEnemyHP));
+  localStorage.setItem(GK_REVIEW,        JSON.stringify(gReview));
+  localStorage.setItem(GK_OWNED,         JSON.stringify(gOwned));
+  localStorage.setItem(GK_STEPS,         JSON.stringify(gSteps));
+  localStorage.setItem(GK_CORRECT,       JSON.stringify(gCorrect));
+  localStorage.setItem(GK_ENHANCE,       JSON.stringify(gEnhance));
+  localStorage.setItem(GK_BOSS_UNLOCKED, JSON.stringify(gBossUnlocked));
 }
 
 /* ── コイン表示更新 ── */
@@ -2475,7 +2486,7 @@ function gGoTo(id) {
   }
 
   if (id === 'scMap')      { gDungeonViewStage = null; gRenderMap(); }
-  if (id === 'scDungeon')  gRenderDungeon();
+  if (id === 'scDungeon')  { if (!gDungeonViewStage) gDungeonViewStage = null; gRenderDungeon(); }
   if (id === 'scWordbook') gRenderWordbook();
   if (id === 'scShop')     gRenderShop();
 }
@@ -2555,20 +2566,17 @@ function gRenderMapStageCard() {
   card.innerHTML = html;
 }
 
+let gFloorResetted = false; // 全フロアクリアでリセットしたフラグ
 let gDungeonViewStage = null; // クリア済みダンジョン閲覧用
 
 function gSelectStage(n) {
   if (gCleared.includes(n)) {
-    // クリア済みは閲覧モードでダンジョンに入る
+    // クリア済みは閲覧モードでダンジョンに入る（gStageは変えない）
     gDungeonViewStage = n;
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('scDungeon').classList.add('active');
     gSyncCoins();
-    // ダンジョン描画だけnで行う
-    const saved = gStage;
-    gStage = n;
     gRenderDungeon();
-    gStage = saved;
     document.querySelectorAll('.gtab').forEach(t => t.classList.remove('gta'));
     document.getElementById('gtab-dungeon').classList.add('gta');
   } else {
@@ -2584,11 +2592,11 @@ function gBossMaxHP(stageNo) {
     const n = parseInt(no);
     return n >= (stageNo-1)*50+1 && n <= stageNo*50;
   }).length;
-  return stageNo * 80 + reviewCount * 10;
+  return stageNo * 120 + reviewCount * 15;
 }
 
 function gRenderDungeon() {
-  const s = gStage;
+  const s = gDungeonViewStage || gStage;
   const atk = gCalcAtk();
   const isCleared = gCleared.includes(s);
   const hdr = document.getElementById('dungeon-header');
@@ -2643,7 +2651,7 @@ function gRenderDungeon() {
       const eIcon = ENEMIES[enemyIdx].icon;
       const hpKey = `${s}_${fi}_${idx}`;
       const savedHP = gEnemyHP[hpKey];
-      const maxHP = s * 25 + (fi + 1) * 20;
+      const maxHP = s * 40 + (fi + 1) * 25;
       const currentHP = savedHP !== undefined ? savedHP : maxHP;
       const defeated = currentHP <= 0;
       return { eName, eIcon, hpKey, maxHP, currentHP, defeated };
@@ -2663,7 +2671,9 @@ function gRenderDungeon() {
   const bossRow = document.createElement('div');
   bossRow.className = 'floor-row boss-row';
   const bossHP = gBossMaxHP(s);
-  const allFloorsCleared = [0,1,2].every(fi => {
+  // 一度でも全フロアクリアしたらボス解放（周回後も維持）
+  const bossUnlocked = gBossUnlocked.includes(s) || gCleared.includes(s);
+  const allFloorsCleared = bossUnlocked || [0,1,2].every(fi => {
     return [0,1].every((idx) => {
       const hpKey = `${s}_${fi}_${idx}`;
       return (gEnemyHP[hpKey] !== undefined ? gEnemyHP[hpKey] : 1) <= 0;
@@ -2671,7 +2681,7 @@ function gRenderDungeon() {
   });
   bossRow.innerHTML = `<span class="floor-num">BOSS</span>
     <div class="enemy-group">
-      <div class="enemy-chip eboss" onclick="gOpenBossIntro()">${allFloorsCleared ? '👑' : '🔒'} ${STAGE_BOSSES[s-1]}</div>
+      <div class="enemy-chip eboss" onclick="${allFloorsCleared ? 'gOpenBossIntro()' : ''}" style="${allFloorsCleared ? '' : 'opacity:.5;cursor:default'}">👑 ${STAGE_BOSSES[s-1]}</div>
     </div>
     <span class="floor-badge fb-boss">${allFloorsCleared ? `HP:${bossHP} / +${s*10}コイン` : '雑魚を倒してから'}</span>`;
   floors.appendChild(bossRow);
@@ -2722,7 +2732,7 @@ function gStartBattle(name, icon, wordNo, isRevenge, hpKey, maxHP) {
   gBattleHP    = currentHP;
   gBattleMaxHP = maxHP || currentHP;
 
-  gBattleStageWords = gStageWords(gStage);
+  gBattleStageWords = gStageWords(gDungeonViewStage || gStage);
   gBattleUsedNos = [];
 
   document.getElementById('b-name').textContent = name;
@@ -2780,6 +2790,7 @@ function gUpdateBattleHP() {
 function gNextWord() {
   gAnswered  = false;
   gHintShown = false;
+  gFloorResetted = false;
   document.getElementById('bhint-panel').classList.remove('bhs');
   document.getElementById('bauto-hint').classList.remove('bah');
   document.getElementById('bfeedback').className = 'bfeedback';
@@ -2793,7 +2804,8 @@ function gNextWord() {
   }
   // 通常・ボスは未正解優先ランダム
   if (!word) {
-    const stageCorrect = gCorrect[gStage] || [];
+    const curStage = gDungeonViewStage || gStage;
+    const stageCorrect = gCorrect[curStage] || [];
     // 未正解の単語を優先
     const unanswered = gBattleStageWords.filter(w =>
       !stageCorrect.includes(w.no) && !gBattleUsedNos.includes(w.no)
@@ -2906,18 +2918,19 @@ function gSelect(i) {
 
   if (i === gBattleAns) {
     btns[i].classList.add('bc-ok');
-    const dmg = gCalcAtk() + (gHintShown || gStage <= 3 ? 0 : 5);
+    const curStage = gDungeonViewStage || gStage;
+    const dmg = gCalcAtk() + (gHintShown || curStage <= 3 ? 0 : 5);
     gBattleHP = Math.max(0, gBattleHP - dmg);
     if (gBattleHPKey) { gEnemyHP[gBattleHPKey] = gBattleHP; }
     const earn = gBattleIsRevenge ? Math.floor(15 * 1.5) : 10;
     gCoins += earn;
     // 正解済みリストに追加
-    if (!gCorrect[gStage]) gCorrect[gStage] = [];
-    if (!gCorrect[gStage].includes(gBattleWord.no)) {
-      gCorrect[gStage].push(gBattleWord.no);
+    if (!gCorrect[curStage]) gCorrect[curStage] = [];
+    if (!gCorrect[curStage].includes(gBattleWord.no)) {
+      gCorrect[curStage].push(gBattleWord.no);
       // 全問正解したらリセット（次のループへ）
-      if (gCorrect[gStage].length >= gBattleStageWords.length) {
-        gCorrect[gStage] = [];
+      if (gCorrect[curStage].length >= gBattleStageWords.length) {
+        gCorrect[curStage] = [];
       }
     }
     // リベンジは1問正解で即撃破・復習リストから削除
@@ -2950,6 +2963,29 @@ function gSelect(i) {
   if (gBattleHP <= 0) {
     nb.textContent = '撃破！結果を見る 🏆';
     nb.onclick = gShowResult;
+    // 雑魚を倒したとき、全フロアクリアしたら雑魚HPをリセット（周回用）
+    if (!gBattleIsBoss && gBattleHPKey) {
+      const s = gDungeonViewStage || gStage;
+      const allMobsDefeated = [0,1,2].every(fi =>
+        [0,1].every(idx => {
+          const key = `${s}_${fi}_${idx}`;
+          const hp = key === gBattleHPKey ? 0 : (gEnemyHP[key] !== undefined ? gEnemyHP[key] : 1);
+          return hp <= 0;
+        })
+      );
+      if (allMobsDefeated) {
+        // ボス解放フラグをセット（以降はリセット後もボスに挑戦可能）
+        if (!gBossUnlocked.includes(s)) gBossUnlocked.push(s);
+        // 雑魚フロアのHPをリセット（ボスHPは維持）
+        [0,1,2].forEach(fi => {
+          [0,1].forEach(idx => {
+            delete gEnemyHP[`${s}_${fi}_${idx}`];
+          });
+        });
+        gFloorResetted = true;
+        gSave();
+      }
+    }
   } else {
     nb.textContent = '次の問題 →';
     nb.onclick = gNextQ;
@@ -2961,7 +2997,7 @@ function gSelect(i) {
 function gShowResult() {
   const isRevenge = gBattleIsRevenge;
   const isBoss    = gBattleIsBoss;
-  const s = gStage;
+  const s = gDungeonViewStage || gStage;
 
   let bonusCoin = 0;
   if (isBoss) {
@@ -2991,6 +3027,10 @@ function gShowResult() {
   document.getElementById('br-revenge-bonus').style.display = isRevenge ? 'block' : 'none';
   document.getElementById('br-boss-bonus').style.display    = isBoss    ? 'block' : 'none';
   if (isBoss) document.getElementById('br-boss-coin').textContent = '+' + bonusCoin;
+  // 周回リセット通知
+  const floorReset = gFloorResetted;
+  gFloorResetted = false;
+  document.getElementById('br-floor-reset').style.display = floorReset ? 'block' : 'none';
   document.getElementById('br-title').textContent = isBoss ? 'ボスクリア！' : isRevenge ? '怨霊退散！' : 'バトル結果';
 
   const nb = document.getElementById('br-next-btn');
@@ -3071,34 +3111,54 @@ function gRenderShop() {
   document.getElementById('shop-atk').textContent = gCalcAtk();
   const grid = document.getElementById('shop-grid');
   grid.innerHTML = '';
+  const maxEnhance = gStage * 2;
   SHOP_ITEMS.forEach(item => {
-    const owned   = gOwned.includes(item.id);
+    const owned    = gOwned.includes(item.id);
     const unlocked = gStage >= item.unlockStage;
+    const enhance  = gEnhance[item.id] || 0;
+    const enhanceCost = owned ? item.cost * Math.pow(2, enhance) : 0;
+    const canEnhance  = owned && enhance < maxEnhance && gCoins >= enhanceCost;
     const card = document.createElement('div');
-    card.style.cssText = `background:${owned?'#EAF3DE':unlocked?'#fff':'#f5f5f0'};border:1px solid ${owned?'#3B6D11':unlocked?'#e8e8e8':'#ddd'};border-radius:12px;padding:12px;text-align:center;cursor:${owned||!unlocked?'default':'pointer'};opacity:${unlocked?'1':'.5'}`;
+    card.style.cssText = `background:${owned?'#EAF3DE':unlocked?'#fff':'#f5f5f0'};border:1px solid ${owned?'#3B6D11':unlocked?'#e8e8e8':'#ddd'};border-radius:12px;padding:12px;text-align:center;opacity:${unlocked?'1':'.5'}`;
+    const enhanceBar = owned && maxEnhance > 0
+      ? `<div style="display:flex;gap:2px;justify-content:center;margin:4px 0">${Array.from({length:Math.min(maxEnhance,10)},(_,i)=>
+          `<div style="width:8px;height:8px;border-radius:2px;background:${i<enhance?'#534AB7':'#e8e8e8'}"></div>`
+        ).join('')}</div>`
+      : '';
     card.innerHTML = `
-      <p style="font-size:28px;margin-bottom:4px">${item.icon}</p>
+      <p style="font-size:26px;margin-bottom:3px">${item.icon}</p>
       <p style="font-size:12px;font-weight:600;color:#1a1a1a">${item.name}</p>
-      <p style="font-size:11px;color:#534AB7;margin-top:2px">ATK+${item.atk}</p>
-      ${owned
-        ? '<p style="font-size:11px;color:#27500A;margin-top:4px;font-weight:600">✅ 所持済み</p>'
-        : unlocked
-          ? `<p style="font-size:12px;color:#633806;margin-top:4px">🪙 ${item.cost}</p>`
-          : `<p style="font-size:11px;color:#aaa;margin-top:4px">Stage${item.unlockStage}でアンロック</p>`}`;
-    if (!owned && unlocked) {
-      card.onclick = () => gBuyItem(item);
-    }
+      <p style="font-size:11px;color:#534AB7;margin-top:1px">ATK+${item.atk + enhance*2}${enhance>0?` <span style="color:#EF9F27">(+${enhance*2}強化)</span>`:''}</p>
+      ${enhanceBar}
+      ${!owned && unlocked ? `<p style="font-size:12px;color:#633806;margin-top:4px">🪙 ${item.cost}</p>`:''}
+      ${!owned && unlocked ? `<button onclick="gBuyItem(event,'${item.id}')" style="margin-top:6px;background:#534AB7;color:white;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:inherit">購入</button>`:''}
+      ${owned && enhance < maxEnhance ? `<button onclick="gEnhanceItem(event,'${item.id}')" style="margin-top:6px;background:${canEnhance?'#EF9F27':'#e8e8e8'};color:${canEnhance?'white':'#aaa'};border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:${canEnhance?'pointer':'default'};font-family:inherit">強化 🪙${enhanceCost}</button>`:''}
+      ${owned && enhance >= maxEnhance ? `<p style="font-size:10px;color:#aaa;margin-top:4px">強化上限 (${enhance}/${maxEnhance})</p>`:''}
+      ${!unlocked ? `<p style="font-size:10px;color:#aaa;margin-top:4px">Stage${item.unlockStage}解放</p>`:''}`;
     grid.appendChild(card);
   });
 }
 
-function gBuyItem(item) {
+function gBuyItem(e, id) {
+  e.stopPropagation();
+  const item = SHOP_ITEMS.find(i => i.id === id);
   if (gCoins < item.cost) { alert(`コインが足りません（必要:${item.cost} / 所持:${gCoins}）`); return; }
   gCoins -= item.cost;
-  gOwned.push(item.id);
-  gSave();
-  gSyncCoins();
-  gRenderShop();
+  gOwned.push(id);
+  gSave(); gSyncCoins(); gRenderShop();
+}
+
+function gEnhanceItem(e, id) {
+  e.stopPropagation();
+  const item = SHOP_ITEMS.find(i => i.id === id);
+  const enhance = gEnhance[id] || 0;
+  const maxEnhance = gStage * 2;
+  if (enhance >= maxEnhance) return;
+  const cost = item.cost * Math.pow(2, enhance);
+  if (gCoins < cost) { alert(`コインが足りません（必要:${cost} / 所持:${gCoins}）`); return; }
+  gCoins -= cost;
+  gEnhance[id] = enhance + 1;
+  gSave(); gSyncCoins(); gRenderShop();
 }
 
 /* ── 進捗リセット ── */
@@ -3109,15 +3169,17 @@ function gCancelReset() {
   document.getElementById('reset-dialog').style.display = 'none';
 }
 function gExecuteReset() {
-  [GK_COINS, GK_STAGE, GK_CLEARED, GK_ENEMY_HP, GK_REVIEW, GK_OWNED, GK_LOGIN, GK_STEPS, GK_CORRECT].forEach(k => localStorage.removeItem(k));
-  gCoins   = 0;
-  gStage   = 1;
-  gCleared = [];
-  gEnemyHP = {};
-  gReview  = {};
-  gOwned   = [];
-  gSteps   = {};
-  gCorrect = {};
+  [GK_COINS, GK_STAGE, GK_CLEARED, GK_ENEMY_HP, GK_REVIEW, GK_OWNED, GK_LOGIN, GK_STEPS, GK_CORRECT, GK_ENHANCE, GK_BOSS_UNLOCKED].forEach(k => localStorage.removeItem(k));
+  gCoins        = 0;
+  gStage        = 1;
+  gCleared      = [];
+  gEnemyHP      = {};
+  gReview       = {};
+  gOwned        = [];
+  gSteps        = {};
+  gCorrect      = {};
+  gEnhance      = {};
+  gBossUnlocked = [];
   gDungeonViewStage = null;
   document.getElementById('reset-dialog').style.display = 'none';
   gSyncCoins();
