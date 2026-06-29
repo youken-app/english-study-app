@@ -2493,6 +2493,14 @@ function gGoTo(id) {
 
 /* ── 既存単語帳に移動 ── */
 function goToOriginalWordbook() {
+  // 現在のステージ範囲を単語帳に設定
+  const stageStart = (gStage - 1) * 50 + 1;
+  const input = document.getElementById('rangeStart');
+  if (input) {
+    input.value = stageStart;
+    updateRange();
+    applyRange();
+  }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('scHome').classList.add('active');
 }
